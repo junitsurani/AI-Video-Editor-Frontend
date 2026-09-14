@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import StudioError from "./error";
 import { StudioSession } from "@/components/studio-session";
 import { safeNext, type User } from "@/lib/auth";
+import { demoCookie, demoMode, demoUser } from "@/lib/demo";
 export default async function StudioLayout({
   children,
 }: {
@@ -10,6 +11,11 @@ export default async function StudioLayout({
 }) {
   const [jar, header] = await Promise.all([cookies(), headers()]);
   const next = safeNext(header.get("x-frame-path"));
+  if (demoMode) {
+    if (jar.get(demoCookie)?.value !== "active")
+      redirect("/login?next=" + encodeURIComponent(next));
+    return <StudioSession user={demoUser}>{children}</StudioSession>;
+  }
   const cookie = jar.get("__Host-frame_session") || jar.get("frame_session");
   if (!cookie) redirect("/login?next=" + encodeURIComponent(next));
   const response = await fetch(

@@ -1,3 +1,5 @@
+import { demoMode } from "./demo";
+
 export type User = {
   id: string;
   name: string;
@@ -40,6 +42,22 @@ export async function csrfHeaders(): Promise<Record<string, string>> {
   return { "X-Frame-CSRF": csrf! };
 }
 export async function authRequest<T>(path: string, data?: unknown): Promise<T> {
+  if (demoMode) {
+    const response = await fetch("/api/demo-session", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...(data as Record<string, unknown>),
+        action: path,
+      }),
+    });
+    const body = await response.json();
+    if (!response.ok)
+      throw new AuthError(body.error, undefined, response.status);
+    clearCsrf();
+    return body as T;
+  }
   for (let attempt = 0; attempt < 2; attempt++) {
     const response = await fetch("/api/auth" + path, {
       method: data === undefined ? "GET" : "POST",

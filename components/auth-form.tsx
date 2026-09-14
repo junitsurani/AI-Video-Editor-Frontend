@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { authRequest, AuthError, safeNext } from "@/lib/auth";
+import { demoMode } from "@/lib/demo";
 import s from "@/app/(auth)/auth.module.css";
 
 type Mode =
@@ -53,7 +54,8 @@ const content = {
     button: "Verify email",
   },
 };
-export function AuthForm({ mode }: { mode: Mode }) {
+export function AuthForm({ mode: requestedMode }: { mode: Mode }) {
+  const mode = demoMode ? "login" : requestedMode;
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
   const copy = content[mode];
@@ -212,7 +214,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
     <div className={s.formContent}>
       <span className={s.eyebrow}>{copy.label}</span>
       <h1>{copy.title}</h1>
-      <p className={s.description}>{copy.description}</p>
+      <p className={s.description}>
+        {demoMode
+          ? "Use your test account to explore the dashboard."
+          : copy.description}
+      </p>
       <form onSubmit={submit} className={s.form}>
         {mode === "signup" && (
           <label htmlFor="name">
@@ -318,7 +324,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
               />
               Remember me
             </label>
-            <Link href={target("/forgot-password")}>Forgot password?</Link>
+            {!demoMode && (
+              <Link href={target("/forgot-password")}>Forgot password?</Link>
+            )}
           </div>
         )}
         {mode === "verify-email" && (
@@ -349,7 +357,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           )}
         </button>
       </form>
-      {mode === "login" && (
+      {mode === "login" && !demoMode && (
         <p className={s.switch}>
           New to Frame? <Link href={target("/signup")}>Create an account</Link>
         </p>

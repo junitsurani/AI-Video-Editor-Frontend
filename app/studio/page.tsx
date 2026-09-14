@@ -21,6 +21,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { csrfHeaders, clearCsrf, redirectToLogin } from "@/lib/auth";
+import { demoMode } from "@/lib/demo";
 import { StudioShell } from "@/components/studio-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -393,7 +394,9 @@ function StudioContent() {
         <DialogContent className="upload-dialog" showCloseButton={!uploading}>
           <DialogTitle>Start a new project</DialogTitle>
           <DialogDescription>
-            Bring your footage and choose where to take it.
+            {demoMode
+              ? "Explore the editing options. Uploads will be available when the backend is reconnected."
+              : "Bring your footage and choose where to take it."}
           </DialogDescription>
           <input
             ref={input}
@@ -467,7 +470,7 @@ function StudioContent() {
           )}
           <Button
             className="modal-submit"
-            disabled={!file || uploading}
+            disabled={demoMode || !file || uploading}
             onClick={upload}
           >
             {uploading ? (
@@ -478,8 +481,9 @@ function StudioContent() {
             {uploading ? "Creating your project" : "Create project"}
           </Button>
           <p className="privacy-note">
-            Your footage is saved in your workspace. Your original is never
-            overwritten.
+            {demoMode
+              ? "Dashboard demo · No files are uploaded."
+              : "Your footage is saved in your workspace. Your original is never overwritten."}
           </p>
         </DialogContent>
       </Dialog>

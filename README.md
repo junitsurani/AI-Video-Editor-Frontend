@@ -15,6 +15,18 @@ Open http://127.0.0.1:3000. Run the Flask API and render worker from `../video-b
 
 ## Configuration
 
+Temporary dashboard demo mode is currently enabled by default. Sign in with
+`demo@frame.test` / `Frame-Demo-2026!Silver`. Login and logout use a separate
+Next.js demo cookie; no Flask authentication requests are made. Refreshing the
+dashboard keeps the test session. Signup/reset links show the test login during
+this mode. Projects are empty, and uploads/rendering are unavailable.
+
+To restore real accounts and editing, set `NEXT_PUBLIC_FRAME_DEMO_MODE=false`
+before building and restart/redeploy the frontend. The demo route then returns
+404 and the studio requires a real Flask session. This switch is a build-time
+setting; keep the same value at runtime. Demo cookies never authorize backend
+data access.
+
 The Next.js server proxies `/api/*` to `http://127.0.0.1:5001`. Copy `.env.example` to `.env.local` and change `API_INTERNAL_URL` when the backend runs elsewhere. This value is server-only and must be available at build time and runtime. Never add AI provider or SMTP credentials to the frontend.
 
 ## Build

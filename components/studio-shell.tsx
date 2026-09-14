@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useStudioUser } from "@/components/studio-session";
 import { authRequest } from "@/lib/auth";
+import { demoMode } from "@/lib/demo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGrid, FolderOpen, ArrowUpRight } from "lucide-react";
@@ -88,7 +89,9 @@ export function StudioShell({
           <span className="header-divider" />
           <span className="breadcrumb">{section}</span>
           <div className="workspace-account">
-            <span className="local-pill">Personal workspace</span>
+            <span className="local-pill">
+              {demoMode ? "Demo workspace" : "Personal workspace"}
+            </span>
             <details className="account-menu">
               <summary className="account-avatar" aria-label="Account menu">
                 {initials}

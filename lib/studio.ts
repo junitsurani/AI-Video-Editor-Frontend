@@ -1,4 +1,5 @@
 import { clearCsrf, csrfHeaders, redirectToLogin } from "./auth";
+import { demoMode } from "./demo";
 export type Mode = "social" | "inspirational" | "clips" | "course";
 export type Finishing = {
   look: "natural" | "cinematic" | "warm" | "mono";
@@ -79,6 +80,19 @@ export async function api<T>(
   method = "GET",
   data?: unknown,
 ): Promise<T> {
+  if (demoMode) {
+    if (method === "GET" && path === "/projects") return { projects: [] } as T;
+    if (method === "GET" && path === "/health")
+      return {
+        ai_configured: false,
+        renderer: false,
+        storage: "demo",
+        max_upload_bytes: 2147483648,
+      } as T;
+    throw new Error(
+      "Uploads and editing are available when the backend is reconnected. You’re currently in the dashboard demo.",
+    );
+  }
   for (let attempt = 0; attempt < 2; attempt++) {
     const r = await fetch("/api" + path, {
       method,
