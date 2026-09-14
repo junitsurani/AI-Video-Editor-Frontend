@@ -1,0 +1,441 @@
+.shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #080808;
+  color: #f4f4f1;
+  font-family: FrameInter, Arial, sans-serif;
+}
+.visual {
+  position: relative;
+  margin: 16px;
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: calc(100dvh - 32px);
+  background: #211d19;
+}
+.visual > img {
+  object-fit: cover;
+  object-position: 48% center;
+}
+.visualShade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0007, transparent 28%, #0004 50%, #000e);
+}
+.brand,
+.mobileBrand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 600;
+  font-size: 29px;
+  letter-spacing: -1.4px;
+  color: #f4f4f1;
+}
+.brand {
+  position: absolute;
+  top: 30px;
+  left: 32px;
+}
+.visualCopy {
+  position: absolute;
+  bottom: 110px;
+  left: 45px;
+  right: 35px;
+}
+.visualCopy > span {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #ded5c8;
+}
+.visualCopy h2 {
+  font-size: clamp(33px, 3.4vw, 52px);
+  line-height: 1.14;
+  letter-spacing: -1.9px;
+  font-weight: 400;
+  margin: 21px 0;
+}
+.visualCopy p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #b5ada4;
+}
+.visualFooter {
+  position: absolute;
+  left: 45px;
+  bottom: 35px;
+  font-size: 11px;
+  color: #b4aaa0;
+}
+.formSide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 100px 56px;
+  position: relative;
+  min-width: 0;
+}
+.formContent {
+  width: 100%;
+  max-width: 385px;
+  animation: arrive 0.5s ease both;
+}
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 1.9px;
+  color: #999;
+  display: block;
+  margin-bottom: 18px;
+}
+.formContent h1 {
+  font-size: 35px;
+  font-weight: 400;
+  letter-spacing: -1.25px;
+  line-height: 1.2;
+  margin: 0;
+  max-width: 360px;
+}
+.description {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #a2a2a2;
+  margin: 17px 0 32px;
+  overflow-wrap: anywhere;
+}
+.description strong {
+  font-weight: 500;
+  color: #e0e0e0;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 12px;
+  color: #cecece;
+}
+.form input:not([type="checkbox"]) {
+  height: 47px;
+  background: #141414;
+  color: #f4f4f1;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0 13px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.form input:not([type="checkbox"]):focus {
+  border-color: #999;
+  box-shadow: 0 0 0 3px #ffffff0b;
+}
+.form input::placeholder {
+  color: #777;
+}
+.form input:disabled {
+  opacity: 0.6;
+}
+.passwordField {
+  position: relative;
+}
+.passwordField input {
+  padding-right: 45px !important;
+}
+.passwordField button {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  width: 44px;
+  display: grid;
+  place-items: center;
+  color: #999;
+  background: none;
+  border: 0;
+  border-radius: 7px;
+}
+.hint {
+  font-size: 11px;
+  color: #909090;
+  line-height: 1.5;
+  margin-top: -11px;
+}
+.options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  margin: 0 0 4px;
+}
+.options > a {
+  color: #c1c1c1;
+}
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #9a9a9a;
+}
+.checkbox input {
+  width: 14px;
+  height: 14px;
+  accent-color: #ddd;
+  cursor: pointer;
+}
+.submit {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  background: #f4f4f1;
+  color: #151515;
+  border: 0;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 18px;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+.submit:hover {
+  background: #d9d9d6;
+}
+.submit:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.switch {
+  font-size: 12px;
+  color: #969696;
+  text-align: center;
+  margin-top: 28px;
+}
+.switch a {
+  color: #eaeaea;
+  margin-left: 4px;
+}
+.footer {
+  position: absolute;
+  bottom: 30px;
+  left: 55px;
+  right: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 10px;
+  color: #717171;
+}
+.footer a {
+  color: #a3a3a3;
+}
+.mobileBrand {
+  display: none;
+}
+.error {
+  background: #241616;
+  border: 1px solid #5b3333;
+  color: #e9b4b4;
+  font-size: 12px;
+  padding: 12px 14px;
+  border-radius: 7px;
+  line-height: 1.6;
+}
+.successIcon {
+  width: 54px;
+  height: 54px;
+  border: 1px solid #414141;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #e0e0e0;
+  background: #1c1c1c;
+  margin-bottom: 27px;
+}
+.note {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #929292;
+  margin: -12px 0 30px;
+}
+.textButton,
+.back {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 22px auto 0;
+  color: #c6c6c6;
+  font-size: 12px;
+  background: none;
+  border: 0;
+  text-align: center;
+}
+.textButton:disabled {
+  color: #868686;
+}
+.formContent > .error {
+  margin-bottom: 18px;
+}
+.verifyCard {
+  display: flex;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #303030;
+  background: #141414;
+  border-radius: 10px;
+  color: #aaa;
+}
+.verifyCard svg {
+  flex-shrink: 0;
+  color: #ccc;
+}
+.verifyCard p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 0;
+}
+.shell a:focus-visible,
+.shell button:focus-visible {
+  outline: 2px solid #bbb;
+  outline-offset: 4px;
+}
+.shell a:hover {
+  opacity: 0.85;
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (min-width: 1600px) {
+  .formContent {
+    max-width: 410px;
+  }
+  .formSide {
+    padding-inline: 100px;
+  }
+  .visualCopy {
+    left: 60px;
+    bottom: 130px;
+  }
+  .visualFooter {
+    left: 60px;
+  }
+}
+@media (max-width: 1000px) {
+  .formSide {
+    padding: 90px 35px;
+  }
+  .visualCopy {
+    left: 30px;
+    right: 20px;
+  }
+  .visualCopy h2 {
+    font-size: 34px;
+  }
+  .visualFooter {
+    left: 30px;
+  }
+  .footer {
+    left: 35px;
+    right: 35px;
+    flex-wrap: wrap;
+  }
+  .formContent h1 {
+    font-size: 31px;
+  }
+}
+@media (max-width: 700px) {
+  .shell {
+    display: block;
+  }
+  .visual {
+    display: none;
+  }
+  .formSide {
+    min-height: 100dvh;
+    padding: 125px 26px 95px;
+  }
+  .mobileBrand {
+    position: absolute;
+    display: flex;
+    top: 27px;
+    left: 26px;
+  }
+  .formContent {
+    max-width: 390px;
+  }
+  .formContent h1 {
+    font-size: 32px;
+  }
+  .footer {
+    left: 26px;
+    right: 26px;
+    bottom: 25px;
+  }
+  .description {
+    margin-bottom: 28px;
+  }
+  .form {
+    gap: 18px;
+  }
+}
+@media (max-width: 360px) {
+  .formSide {
+    padding-inline: 20px;
+  }
+  .formContent h1 {
+    font-size: 29px;
+  }
+  .options {
+    font-size: 11px;
+  }
+  .footer {
+    left: 20px;
+    right: 20px;
+    font-size: 9px;
+  }
+  .mobileBrand {
+    left: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .formContent {
+    animation: none;
+  }
+  .shell * {
+    transition: none !important;
+  }
+}
+
+.form input:-webkit-autofill,
+.form input:-webkit-autofill:hover,
+.form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f4f4f1;
+  -webkit-box-shadow: 0 0 0 1000px #141414 inset;
+  caret-color: #f4f4f1;
+}
+@media (max-width: 700px) {
+  .form input:not([type="checkbox"]) {
+    font-size: 16px;
+  }
+}
