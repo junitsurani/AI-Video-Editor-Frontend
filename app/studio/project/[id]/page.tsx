@@ -7,7 +7,6 @@ import {
   ArrowDownToLine,
   Check,
   CheckCircle2,
-  Captions,
   Clock3,
   Film,
   LoaderCircle,
@@ -15,8 +14,9 @@ import {
   Sparkles,
   SlidersHorizontal,
   WandSparkles,
-  RefreshCw,
 } from "lucide-react";
+import { EditorFinishing } from "@/components/editor-finishing";
+import { EditorTranscript } from "@/components/editor-transcript";
 import { StudioShell } from "@/components/studio-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ import {
   duration,
   type Project,
   type Plan,
+  type Finishing,
   type Health,
   type Revision,
 } from "@/lib/studio";
@@ -42,6 +43,11 @@ export default function ProjectPage({
   const [actionError, setActionError] = useState("");
   const [aspect, setAspect] = useState<"16:9" | "9:16">("9:16");
   const [captions, setCaptions] = useState(false);
+  const [finishing, setFinishing] = useState<Finishing>({
+    look: "natural",
+    fit: "contain",
+    normalize_audio: true,
+  });
   const [removeSilence, setRemoveSilence] = useState(true);
   const [prompt, setPrompt] = useState("");
   const [panel, setPanel] = useState("edit");
@@ -53,27 +59,51 @@ export default function ProjectPage({
   const video = useRef<HTMLVideoElement>(null);
   const pendingSeek = useRef<number | null>(null);
   const initial = useRef(false);
+  const receiveProject = useCallback((p: Project) => {
+    setProject(p);
+    setError("");
+    if (!initial.current) {
+      setAspect(
+        p.revisions.at(-1)?.plan.aspect ||
+          (p.mode === "course" ? "16:9" : "9:16"),
+      );
+      setCaptions(p.revisions.at(-1)?.plan.captions || false);
+      setFinishing(
+        p.revisions.at(-1)?.plan || {
+          look: p.mode === "inspirational" ? "cinematic" : "natural",
+          fit: "contain",
+          normalize_audio: true,
+        },
+      );
+      setTrimEnd(p.info.duration.toFixed(2));
+      initial.current = true;
+    }
+  }, []);
   const load = useCallback(async () => {
     try {
-      const p = await api<Project>("/projects/" + id);
-      setProject(p);
-      setError("");
-      if (!initial.current) {
-        setAspect(p.revisions.at(-1)?.plan.aspect || (p.mode === "course" ? "16:9" : "9:16"));
-        setCaptions(p.revisions.at(-1)?.plan.captions || false);
-        setTrimEnd(p.info.duration.toFixed(2));
-        initial.current = true;
-      }
+      receiveProject(await api<Project>("/projects/" + id));
     } catch (e) {
       setError((e as Error).message);
     }
-  }, [id]);
+  }, [id, receiveProject]);
   useEffect(() => {
-    load();
+    let active = true;
+    api<Project>("/projects/" + id)
+      .then((p) => {
+        if (active) receiveProject(p);
+      })
+      .catch((e) => {
+        if (active) setError((e as Error).message);
+      });
     api<Health>("/health")
-      .then(setHealth)
+      .then((h) => {
+        if (active) setHealth(h);
+      })
       .catch(() => {});
-  }, [load]);
+    return () => {
+      active = false;
+    };
+  }, [id, receiveProject]);
   const processing =
     busy ||
     project?.job?.status === "queued" ||
@@ -86,6 +116,14 @@ export default function ProjectPage({
   const selected: Revision | undefined =
     project?.revisions.find((r) => r.id === revisionId) ||
     project?.revisions.at(-1);
+  const [draftRevision, setDraftRevision] = useState("");
+  // Reset the editable draft only when a different saved revision is selected.
+  if (selected && draftRevision !== selected.id) {
+    setDraftRevision(selected.id);
+    setFinishing(selected.plan);
+    setAspect(selected.plan.aspect);
+    setCaptions(selected.plan.captions);
+  }
   const mode = modes.find((m) => m.id === project?.mode);
   async function action(path: string, data: unknown) {
     setActionError("");
@@ -103,6 +141,7 @@ export default function ProjectPage({
   }
   function analyze() {
     action("/analyze", {
+      ...finishing,
       aspect,
       captions,
       remove_silence: removeSilence,
@@ -112,12 +151,10 @@ export default function ProjectPage({
   function manual() {
     if (!project) return;
     const plan: Plan = {
+      ...finishing,
       cuts: [{ start: Number(trimStart), end: Number(trimEnd) }],
       aspect,
       captions,
-      normalize_audio: true,
-      look: project.mode === "inspirational" ? "cinematic" : "natural",
-      fit: "contain",
     };
     action("/revisions", { plan, prompt: "Manual trim and framing" });
   }
@@ -275,7 +312,11 @@ export default function ProjectPage({
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
-                        if (prompt.trim()) action("/revisions", { prompt, base_revision: selected.id });
+                        if (prompt.trim())
+                          action("/revisions", {
+                            prompt,
+                            base_revision: selected.id,
+                          });
                       }}
                     >
                       <Input
@@ -402,7 +443,9 @@ export default function ProjectPage({
                         </button>
                       </div>
                       <p className="subtle-note">
-                        Full frame is preserved with letterboxing.
+                        {finishing.fit === "cover"
+                          ? "Fill the frame. Adjust focus in Style & sound."
+                          : "Full frame is preserved with letterboxing."}
                       </p>
                     </div>
                     <div className="setting-toggle">
@@ -420,12 +463,12 @@ export default function ProjectPage({
                     </div>
                     <div className="setting-toggle">
                       <div>
-                        <label htmlFor="captions">Word-by-word captions</label>
+                        <label htmlFor="captions">Captions</label>
                         <span>
                           {health?.ai_configured ||
                           project.analysis?.segments.length
                             ? "Clear words, timed to your voice."
-                            : "Requires AI transcription."}
+                            : "Import subtitles or connect AI."}
                         </span>
                       </div>
                       <Switch
@@ -438,6 +481,27 @@ export default function ProjectPage({
                         }
                       />
                     </div>
+                    <EditorFinishing
+                      project={project}
+                      value={finishing}
+                      onChange={setFinishing}
+                      disabled={!!processing}
+                      hasRevision={!!selected}
+                      onReload={load}
+                      onApply={() =>
+                        selected &&
+                        action("/revisions", {
+                          plan: {
+                            ...selected.plan,
+                            ...finishing,
+                            cuts: selected.plan.cuts,
+                            aspect,
+                            captions,
+                          },
+                          prompt: "Updated style and sound",
+                        })
+                      }
+                    />
                     {project.mode === "clips" && (
                       <div className="setting-group">
                         <label
@@ -470,7 +534,7 @@ export default function ProjectPage({
                       {project.mode === "clips"
                         ? "Find highlights"
                         : selected
-                          ? "Generate a new cut"
+                          ? "Rebuild from original"
                           : "Create first cut"}
                     </Button>
                     {!health?.ai_configured && (
@@ -537,42 +601,28 @@ export default function ProjectPage({
                     )}
                   </div>
                 ) : panel === "transcript" ? (
-                  <div className="transcript-panel">
-                    {project.analysis?.segments.length ? (
-                      <>
-                        <p className="subtle-note">
-                          Click a timestamp to jump to the original.
-                        </p>
-                        {project.analysis.segments.map((s, i) => (
-                          <button
-                            key={i}
-                            className="transcript-line"
-                            onClick={() => {
-                              pendingSeek.current = s.start;
-                              setViewSource(true);
-                              if (viewSource && video.current) {
-                                video.current.currentTime = s.start;
-                                pendingSeek.current = null;
-                              }
-                            }}
-                          >
-                            <span>{duration(s.start)}</span>
-                            <p>{s.text}</p>
-                          </button>
-                        ))}
-                      </>
-                    ) : (
-                      <div className="panel-empty">
-                        <Captions size={28} />
-                        <h3>Your words will appear here</h3>
-                        <p>
-                          {health?.ai_configured
-                            ? "Analyze your video to create a timestamped transcript."
-                            : "Connect an AI provider and analyze your video to generate a transcript."}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  <EditorTranscript
+                    key={project.transcript_id || "untranscribed"}
+                    project={project}
+                    selected={selected}
+                    disabled={!!processing}
+                    onReload={load}
+                    onSeek={(time) => {
+                      pendingSeek.current = time;
+                      setViewSource(true);
+                      if (viewSource && video.current) {
+                        video.current.currentTime = time;
+                        pendingSeek.current = null;
+                      }
+                    }}
+                    onCut={(segments) =>
+                      action("/speech-cuts", {
+                        segments,
+                        revision: selected?.id,
+                        transcript_id: project.transcript_id,
+                      })
+                    }
+                  />
                 ) : (
                   <div className="history-panel">
                     {project.revisions.length ? (

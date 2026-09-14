@@ -1,12 +1,24 @@
 import { clearCsrf, csrfHeaders, redirectToLogin } from "./auth";
 export type Mode = "social" | "inspirational" | "clips" | "course";
-export type Plan = {
+export type Finishing = {
+  look: "natural" | "cinematic" | "warm" | "mono";
+  fit: "contain" | "cover";
+  focus_x?: number;
+  focus_y?: number;
+  motion?: "none" | "push" | "punch";
+  caption_style?: "clean" | "highlight" | "bold";
+  caption_position?: "lower" | "center";
+  denoise?: boolean;
+  music_id?: string | null;
+  music_volume?: number;
+  music_duck?: boolean;
+  fade?: number;
+  normalize_audio: boolean;
+};
+export type Plan = Finishing & {
   cuts: { start: number; end: number }[];
   aspect: "16:9" | "9:16";
   captions: boolean;
-  normalize_audio: boolean;
-  look: "natural" | "cinematic";
-  fit: "contain" | "cover";
 };
 export type Revision = {
   id: string;
@@ -46,6 +58,8 @@ export type Project = {
     reason: string;
     score: number;
   }[];
+  music?: { id: string; name: string; duration: number }[];
+  transcript_id?: string;
   analysis?: {
     segments: { start: number; end: number; text: string }[];
     words: unknown[];
