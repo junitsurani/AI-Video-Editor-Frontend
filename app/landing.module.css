@@ -198,8 +198,8 @@
   border: 1px solid #242424;
   border-radius: 15px;
   position: relative;
-  background-image: radial-gradient(#272727 0.65px, transparent 0.7px);
-  background-size: 12px 12px;
+  background-image: var(--frame-canvas-grid);
+  background-size: var(--frame-canvas-grid-size);
   overflow: hidden;
   cursor: grab;
   touch-action: pan-y;
@@ -301,8 +301,8 @@
 }
 .node > img {
   width: 100%;
-  border-radius: 12px;
-  border: 1px solid #363636;
+  border-radius: var(--frame-panel-radius);
+  border: 1px solid var(--frame-panel-edge);
   aspect-ratio: 16/9;
 }
 .referenceNode {
@@ -561,9 +561,9 @@
   top: 0;
   width: 75%;
   height: 100%;
-  background: #111;
-  border: 1px solid #272727;
-  border-radius: 12px;
+  background: var(--frame-panel-surface);
+  border: 1px solid var(--frame-panel-edge);
+  border-radius: var(--frame-panel-radius);
   transform: translateX(calc(30px - var(--progress) * 30px));
   box-shadow: 0 16px 60px #0008;
 }
@@ -653,8 +653,9 @@
   left: 12px;
   right: 12px;
   padding: 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--frame-panel-edge);
   border-radius: 10px;
+  background: var(--frame-panel-raised);
   color: #696969 !important;
   font-size: 10px;
   height: 85px;

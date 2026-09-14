@@ -254,28 +254,6 @@ function StudioContent() {
                         <span className="mode-icon">
                           <Icon size={17} />
                         </span>
-                        {i === 0 && (
-                          <span className="sample-caption">
-                            MAKE EVERY
-                            <br />
-                            <em>WORD COUNT.</em>
-                          </span>
-                        )}
-                        {i === 1 && (
-                          <span className="sample-cinematic">KEEP GOING.</span>
-                        )}
-                        {i === 2 && (
-                          <span className="clip-stack">
-                            <Scissors size={13} /> Find your best moments
-                          </span>
-                        )}
-                        {i === 3 && (
-                          <span className="course-label">
-                            Less noise.
-                            <br />
-                            More clarity.
-                          </span>
-                        )}
                       </div>
                       <div className="mode-text">
                         <h3>
@@ -340,6 +318,11 @@ function StudioContent() {
                     className="project-card"
                     href={"/studio/project/" + p.id}
                   >
+                    <div className="project-card-heading">
+                      <Film size={14} aria-hidden="true" />
+                      <h3 title={p.name}>{p.name}</h3>
+                      <ArrowUpRight size={14} aria-hidden="true" />
+                    </div>
                     <div
                       className="project-thumb"
                       style={{ backgroundImage: `url('${p.thumbnail_url}')` }}
@@ -355,7 +338,6 @@ function StudioContent() {
                               : "Original uploaded"}
                       </span>
                     </div>
-                    <h3>{p.name}</h3>
                     <p>
                       {modes.find((m) => m.id === p.mode)?.title}
                       <span>
