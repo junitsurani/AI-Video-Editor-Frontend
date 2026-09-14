@@ -1,0 +1,136 @@
+.section {
+  border-top: 1px solid #333;
+  margin: 20px 0;
+}
+.section summary {
+  cursor: pointer;
+  padding: 18px 0;
+  font-size: 13px;
+  color: #ddd;
+}
+.fields {
+  display: grid;
+  gap: 18px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.field {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  color: #ccc;
+  min-width: 0;
+}
+.field select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #383838;
+  border-radius: 7px;
+  background: #191919;
+  color: #eee;
+  padding: 10px;
+  font: inherit;
+}
+.field input[type="range"] {
+  width: 100%;
+  accent-color: #ddd;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: #ccc;
+}
+.row input {
+  accent-color: #ddd;
+  width: 16px;
+  height: 16px;
+}
+.note {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #999;
+  margin: 0;
+}
+.file {
+  font-size: 12px;
+  width: 100%;
+  min-width: 0;
+  color: #aaa;
+}
+.file::file-selector-button {
+  background: #242424;
+  color: #eee;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+.error {
+  font-size: 12px;
+  color: #efb2b2;
+  line-height: 1.5;
+}
+.audio {
+  width: 100%;
+  height: 34px;
+}
+.field select:focus-visible,
+.file:focus-visible {
+  outline: 2px solid #bbb;
+  outline-offset: 3px;
+}
+.fields:disabled {
+  opacity: 0.6;
+}
+.transcriptTools {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #333;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.cue {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  border-bottom: 1px solid #262626;
+  padding: 12px 0;
+  align-items: start;
+}
+.cue input {
+  accent-color: #ddd;
+  margin-top: 6px;
+}
+.cue button {
+  min-width: 0;
+  text-align: left;
+  color: #ccc;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.cue time {
+  display: block;
+  color: #888;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.cue[data-excluded="true"] button {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+.selection {
+  display: grid;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  background: #111;
+  padding: 12px 0;
+  border-bottom: 1px solid #333;
+  z-index: 1;
+}
