@@ -18,7 +18,17 @@ export type Finishing = {
   fade?: number;
   normalize_audio: boolean;
 };
+export type SupportingAsset = {
+  id: string; name: string; role: "broll" | "sfx" | "reference" | "music"; kind: "image" | "video" | "audio";
+  duration: number; description: string; rights: string; status: string;
+};
+export type MediaLayer = { asset_id: string; start: number; end: number; source_start: number; layout?: "cover" | "split"; volume?: number };
+export type GraphicLayer = { text: string; start: number; end: number; position: "top" | "center" };
 export type Plan = Finishing & {
+  broll?: MediaLayer[];
+  sfx?: MediaLayer[];
+  graphics?: GraphicLayer[];
+  transition?: "cut" | "dip";
   version?: number;
   beats?: number[];
   caption_emphasis?: string[];
@@ -31,6 +41,7 @@ export type Revision = {
   created_at: string;
   prompt: string;
   plan: Plan;
+  edit_summary?: { message: string; changed_fields: string[] } | null;
   preview_url: string;
   export_url?: string;
 };
@@ -78,6 +89,8 @@ export type Project = {
     reason: string;
     score: number;
   }[];
+  assets?: SupportingAsset[];
+  clip_search?: { requested: number; returned: number; message: string };
   music?: { id: string; name: string; duration: number }[];
   transcript_id?: string;
   analysis?: {

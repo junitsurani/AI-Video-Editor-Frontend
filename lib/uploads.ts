@@ -3,6 +3,41 @@ import { csrfHeaders, clearCsrf } from './auth';
 
 type Upload = { id: string; chunk_size: number; storage?: string; parts?: { number: number; size: number; checksum: string }[] };
 
+export async function uploadAsset(file: File, projectId: string, metadata: { role: string; rights: string; description: string }, onProgress: (value: number) => void) {
+  const fingerprint = await checksum(new Blob([file.slice(0, 65536), file.slice(-65536)]));
+  const key = `frame-asset:${projectId}:${metadata.role}:${metadata.rights}:${metadata.description}:${file.size}:${fingerprint}`;
+  let init: Upload | undefined;
+  const saved = sessionStorage.getItem(key);
+  if (saved) {
+    try { init = await api<Upload>(`/uploads/${saved}`); }
+    catch { sessionStorage.removeItem(key); }
+  }
+  if (!init) {
+    init = await api<Upload>(`/projects/${projectId}/assets/uploads`, 'POST', { ...metadata, filename: file.name, size: file.size });
+    if (init.storage === 's3') sessionStorage.setItem(key, init.id);
+  }
+  const completed = new Map(init.parts?.map(p => [p.number, p.checksum]) || []);
+  for (let offset = 0, number = 1; offset < file.size; offset += init.chunk_size, number++) {
+    const chunk = file.slice(offset, offset + init.chunk_size);
+    const sha = init.storage === 's3' ? await checksum(chunk) : '';
+    if (completed.get(number) !== sha || init.storage !== 's3') {
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const target = init.storage === 's3'
+            ? await api<{ url: string; headers: Record<string, string> }>(`/uploads/${init.id}/parts/${number}`, 'POST', { checksum: sha })
+            : { url: `/api/uploads/${init.id}/chunks/${number - 1}`, headers: await csrfHeaders() };
+          await put(target.url, chunk, target.headers, loaded => onProgress(Math.min(99, Math.round((offset + loaded) / file.size * 100))));
+          break;
+        } catch (error) { if (attempt >= 2) throw error; }
+      }
+    }
+    onProgress(Math.min(99, Math.round((offset + chunk.size) / file.size * 100)));
+  }
+  const result = await api<{ job_id: string; asset_id: string }>(`/uploads/${init.id}/complete`, 'POST', {});
+  sessionStorage.removeItem(key); onProgress(100);
+  return result;
+}
+
 async function checksum(blob: Blob) {
   const bytes = new Uint8Array(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer()));
   return btoa(String.fromCharCode(...bytes));
