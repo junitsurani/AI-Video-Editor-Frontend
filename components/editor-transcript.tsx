@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { api, duration, type Project, type Revision } from "@/lib/studio";
 import styles from "./editor-finishing.module.css";
 import { EditorCleanup } from "./editor-cleanup";
+import { TranscriptCorrection } from "./transcript-correction";
 
 export function EditorTranscript({
   project,
@@ -25,6 +26,9 @@ export function EditorTranscript({
   const [excluded, setExcluded] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(0);
+  const total = project.analysis?.segments.length ?? 0;
+  const currentPage = Math.min(page, Math.max(0, Math.ceil(total / 50) - 1));
   async function importFile(file: File) {
     setError("");
     if (file.size > 500_000) {
@@ -109,7 +113,13 @@ export function EditorTranscript({
               )}
             </div>
           )}
-          {project.analysis.segments.map((cue, i) => {
+          {total > 50 && <div className={styles.selection}>
+            <Button variant="ghost" size="sm" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</Button>
+            <span className={styles.note}>Lines {currentPage * 50 + 1}–{Math.min(total, (currentPage + 1) * 50)} of {total}</span>
+            <Button variant="ghost" size="sm" disabled={(currentPage + 1) * 50 >= total} onClick={() => setPage(currentPage + 1)}>Next</Button>
+          </div>}
+          {project.analysis.segments.slice(currentPage * 50, (currentPage + 1) * 50).map((cue, position) => {
+            const i = currentPage * 50 + position;
             const removed =
               !!selected &&
               !selected.plan.cuts.some(
@@ -117,6 +127,7 @@ export function EditorTranscript({
                   Math.min(cut.end, cue.end) > Math.max(cut.start, cue.start),
               );
             return (
+              <div key={`${project.transcript_id}:${i}`}>
               <div
                 key={i}
                 className={styles.cue}
@@ -141,6 +152,8 @@ export function EditorTranscript({
                   </time>
                   {cue.text}
                 </button>
+              </div>
+              <TranscriptCorrection project={project} index={i} disabled={disabled || loading} onReload={onReload} />
               </div>
             );
           })}

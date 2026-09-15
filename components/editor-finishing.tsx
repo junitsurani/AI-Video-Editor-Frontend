@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { csrfHeaders, clearCsrf } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { type Finishing, type Project } from "@/lib/studio";
+import { api, type Health, type Finishing, type Project } from "@/lib/studio";
+import { uploadMusic } from "@/lib/uploads";
 import styles from "./editor-finishing.module.css";
 
 export function EditorFinishing({
@@ -35,6 +36,20 @@ export function EditorFinishing({
     }
     setUploading(true);
     try {
+      const health = await api<Health>("/health");
+      if (health.storage === "s3") {
+        const result = await uploadMusic(file, project.id);
+        await onReload();
+        for (let attempt = 0; attempt < 60; attempt++) {
+          const latest = await api<Project>(`/projects/${project.id}`);
+          if (latest.music?.some((track) => track.id === result.asset_id)) {
+            await onReload(); patch({ music_id: result.asset_id }); return;
+          }
+          if (latest.job?.id === result.job_id && ["failed", "cancelled"].includes(latest.job.status)) throw new Error(latest.job.message);
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+        }
+        throw new Error("Music is still processing. It will appear in your track list when ready.");
+      }
       const form = new FormData();
       form.append("file", file);
       let result;
@@ -67,6 +82,27 @@ export function EditorFinishing({
     <details className={styles.section}>
       <summary>Style &amp; sound</summary>
       <fieldset className={styles.fields} disabled={disabled || uploading}>
+        <label className={styles.field}>
+          Subject framing
+          <select value={value.framing ?? "manual"} onChange={(e) => patch({ framing: e.target.value as "auto" | "manual" })}>
+            <option value="auto">Follow subject automatically</option>
+            <option value="manual">Set framing manually</option>
+          </select>
+        </label>
+        {value.framing === "auto" && (
+          <>
+            <p className={styles.note}>Keeps a wider frame when the subject cannot be followed confidently.</p>
+            {!!project.analysis?.tracking?.subjects.length && (
+              <label className={styles.field}>Subject
+                <select value={value.subject_id ?? ""} onChange={(e) => patch({ subject_id: e.target.value || null })}>
+                  <option value="">Automatic selection</option>
+                  {project.analysis.tracking.subjects.map((id, i) => <option key={id} value={id}>Subject {i + 1}</option>)}
+                </select>
+              </label>
+            )}
+          </>
+        )}
+        {value.framing !== "auto" && <>
         <label className={styles.field}>
           Framing
           <select
@@ -107,6 +143,7 @@ export function EditorFinishing({
             </p>
           </>
         )}
+        </>}
         <label className={styles.field}>
           Motion
           <select
@@ -120,12 +157,12 @@ export function EditorFinishing({
           >
             <option value="none">Steady</option>
             <option value="push">Gentle push-in</option>
-            <option value="punch">Rhythmic punch-ins</option>
+            <option value="punch">Emphasize key moments</option>
           </select>
         </label>
         {value.motion === "punch" && (
           <p className={styles.note}>
-            Alternates a subtle zoom every five seconds within each cut.
+            Uses analyzed speech moments for restrained punch-ins. Stays steady when no moments are identified.
           </p>
         )}
         <label className={styles.field}>

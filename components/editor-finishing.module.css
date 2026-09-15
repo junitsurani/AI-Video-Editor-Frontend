@@ -195,3 +195,9 @@
   outline-offset: 3px;
   border-radius: 4px;
 }
+.correction { padding: 0 0 14px 28px; }
+.correction > button { font-size: 11px; color: #aaa; background: transparent; border: 0; cursor: pointer; }
+.correction fieldset { border: 1px solid #303030; border-radius: 10px; padding: 12px; margin-top: 10px; min-width: 0; }
+.correction textarea { width: 100%; background: #151515; border: 1px solid #333; color: #eee; border-radius: 6px; padding: 8px; min-height: 70px; }
+.wordRow { display: grid; grid-template-columns: minmax(0,1fr) 65px 65px; gap: 6px; margin: 6px 0; }
+.wordRow input { width: 100%; min-width: 0; background: #151515; color: #eee; border: 1px solid #333; border-radius: 5px; padding: 5px; }
