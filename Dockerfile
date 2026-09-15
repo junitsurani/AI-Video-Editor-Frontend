@@ -4,7 +4,9 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 ARG API_INTERNAL_URL=http://api:5001
+ARG NEXT_PUBLIC_FRAME_DEMO_MODE=false
 ENV API_INTERNAL_URL=$API_INTERNAL_URL
+ENV NEXT_PUBLIC_FRAME_DEMO_MODE=$NEXT_PUBLIC_FRAME_DEMO_MODE
 RUN npm run build
 FROM node:22-bookworm-slim
 WORKDIR /app

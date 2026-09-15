@@ -16,11 +16,10 @@ import {
   Check,
   LoaderCircle,
   FileVideo,
-  X,
   Search,
   CheckCircle2,
 } from "lucide-react";
-import { csrfHeaders, clearCsrf, redirectToLogin } from "@/lib/auth";
+import { uploadVideo } from "@/lib/uploads";
 import { demoMode } from "@/lib/demo";
 import { StudioShell } from "@/components/studio-shell";
 import { Button } from "@/components/ui/button";
@@ -87,16 +86,23 @@ function StudioContent() {
     }
   }
   useEffect(() => {
-    load();
+    let active = true;
+    Promise.all([api<{ projects: Project[] }>("/projects"), api<Health>("/health")])
+      .then(([p, h]) => { if (active) { setProjects(p.projects); setHealth(h); setError(""); } })
+      .catch((e) => { if (active) setError((e as Error).message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
-  useEffect(() => {
+  const [route, setRoute] = useState<string | null>(null);
+  if (route !== searchParams.toString()) {
+    setRoute(searchParams.toString());
     const m = searchParams.get("mode");
     if (modes.some((x) => x.id === m)) {
       setMode(m as Mode);
       setModal(true);
     }
     setView(searchParams.get("view") === "projects" ? "projects" : "home");
-  }, [searchParams]);
+  }
   function choose(m: Mode) {
     setMode(m);
     setUploadError("");
@@ -121,50 +127,7 @@ function StudioContent() {
     setUploadError("");
     setProgress(0);
     try {
-      const init = await api<{ id: string; chunk_size: number }>(
-        "/uploads",
-        "POST",
-        { filename: file.name, size: file.size, mode },
-      );
-      for (
-        let offset = 0, i = 0;
-        offset < file.size;
-        offset += init.chunk_size, i++
-      ) {
-        const chunk = file.slice(offset, offset + init.chunk_size);
-        const chunkHeaders = await csrfHeaders();
-        await new Promise<void>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open("PUT", `/api/uploads/${init.id}/chunks/${i}`);
-          Object.entries(chunkHeaders).forEach(([key, value]) =>
-            xhr.setRequestHeader(key, value),
-          );
-          xhr.upload.onprogress = (e) =>
-            setProgress(
-              Math.min(99, Math.round(((offset + e.loaded) / file.size) * 100)),
-            );
-          xhr.onload = () => {
-            if (xhr.status === 401) {
-              redirectToLogin();
-              reject(new Error("Please sign in again."));
-              return;
-            }
-            if (xhr.status === 403) clearCsrf();
-            if (xhr.status >= 200 && xhr.status < 300) resolve();
-            else {
-              try {
-                reject(new Error(JSON.parse(xhr.responseText).error));
-              } catch {
-                reject(new Error("Upload failed. Please retry."));
-              }
-            }
-          };
-          xhr.onerror = () =>
-            reject(new Error("Connection lost. Please retry your upload."));
-          xhr.send(chunk);
-        });
-      }
-      const p = await api<Project>(`/uploads/${init.id}/complete`, "POST", {});
+      const p = await uploadVideo(file, mode, setProgress);
       setProgress(100);
       router.push("/studio/project/" + p.id);
     } catch (e) {

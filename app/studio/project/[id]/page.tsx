@@ -67,16 +67,19 @@ export default function ProjectPage({
         p.revisions.at(-1)?.plan.aspect ||
           (p.mode === "course" ? "16:9" : "9:16"),
       );
-      setCaptions(p.revisions.at(-1)?.plan.captions || false);
+      setCaptions(p.revisions.at(-1)?.plan.captions ?? (p.mode === "social"));
       setFinishing(
         p.revisions.at(-1)?.plan || {
           look: p.mode === "inspirational" ? "cinematic" : "natural",
           fit: "contain",
+          framing: p.mode === "social" ? "auto" : "manual",
+          motion: p.mode === "social" ? "punch" : "none",
+          caption_style: p.mode === "social" ? "highlight" : "clean",
           normalize_audio: true,
         },
       );
       setTrimEnd(p.info.duration.toFixed(2));
-      initial.current = true;
+      initial.current = p.info.duration > 0;
     }
   }, []);
   const load = useCallback(async () => {
@@ -108,6 +111,7 @@ export default function ProjectPage({
     busy ||
     project?.job?.status === "queued" ||
     project?.job?.status === "running";
+  const sourceReady = !!project?.info.duration && project?.status !== "ingesting";
   useEffect(() => {
     if (!processing) return;
     const timer = setInterval(load, 1600);
@@ -291,11 +295,13 @@ export default function ProjectPage({
                       <b>{project.job?.progress || 0}%</b>
                     </div>
                     <progress value={project.job?.progress || 0} max={100} />
+                    {project.job && !busy && <Button variant="ghost" size="sm" onClick={() => action(`/jobs/${project.job!.id}/cancel`, {})}>Cancel processing</Button>}
                   </div>
                 )}
-                {project.job?.status === "failed" && !processing && (
+                {(project.job?.status === "failed" || project.job?.status === "cancelled") && !processing && (
                   <div className="error-message" role="alert">
                     {project.job.message}
+                    <Button variant="outline" size="sm" onClick={() => action(`/jobs/${project.job!.id}/retry`, {})}>Retry</Button>
                   </div>
                 )}
                 {actionError && (
@@ -443,7 +449,9 @@ export default function ProjectPage({
                         </button>
                       </div>
                       <p className="subtle-note">
-                        {finishing.fit === "cover"
+                        {finishing.framing === "auto"
+                          ? "Follow the subject, with a wider view when framing is uncertain."
+                          : finishing.fit === "cover"
                           ? "Fill the frame. Adjust focus in Style & sound."
                           : "Full frame is preserved with letterboxing."}
                       </p>
@@ -485,7 +493,7 @@ export default function ProjectPage({
                       project={project}
                       value={finishing}
                       onChange={setFinishing}
-                      disabled={!!processing}
+                      disabled={!!processing || !sourceReady}
                       hasRevision={!!selected}
                       onReload={load}
                       onApply={() =>
@@ -521,7 +529,7 @@ export default function ProjectPage({
                     <Button
                       className="generate-button"
                       disabled={
-                        processing ||
+                        !sourceReady || processing ||
                         (!health?.ai_configured && project.mode === "clips")
                       }
                       onClick={analyze}
@@ -581,7 +589,7 @@ export default function ProjectPage({
                       <Button
                         variant="outline"
                         disabled={
-                          processing || Number(trimEnd) <= Number(trimStart)
+                          !sourceReady || processing || Number(trimEnd) <= Number(trimStart)
                         }
                         onClick={manual}
                       >
@@ -606,7 +614,7 @@ export default function ProjectPage({
                     key={project.transcript_id || "untranscribed"}
                     project={project}
                     selected={selected}
-                    disabled={!!processing}
+                    disabled={!!processing || !sourceReady}
                     onReload={load}
                     onSeek={(time) => {
                       pendingSeek.current = time;
