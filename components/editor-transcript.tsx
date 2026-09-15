@@ -3,11 +3,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { api, duration, type Project, type Revision } from "@/lib/studio";
 import styles from "./editor-finishing.module.css";
+import { EditorCleanup } from "./editor-cleanup";
 
 export function EditorTranscript({
   project,
   selected,
   disabled,
+  aiAvailable,
   onReload,
   onSeek,
   onCut,
@@ -15,6 +17,7 @@ export function EditorTranscript({
   project: Project;
   selected?: Revision;
   disabled: boolean;
+  aiAvailable: boolean;
   onReload: () => Promise<void>;
   onSeek: (time: number) => void;
   onCut: (indices: number[]) => void;
@@ -73,6 +76,15 @@ export function EditorTranscript({
       </div>
       {project.analysis?.segments.length ? (
         <>
+          <EditorCleanup
+            key={`${project.cleanup?.id || "new"}:${selected?.id || "original"}`}
+            project={project}
+            selected={selected}
+            disabled={disabled || loading}
+            aiAvailable={aiAvailable}
+            onReload={onReload}
+            onSeek={onSeek}
+          />
           <p className={styles.note}>
             Click a timestamp to review the source. Select lines to remove from
             the current edit.

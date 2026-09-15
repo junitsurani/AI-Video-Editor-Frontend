@@ -134,3 +134,64 @@
   border-bottom: 1px solid #333;
   z-index: 1;
 }
+.cleanup {
+  padding: 18px 0;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border, #333);
+}
+.cleanupHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.cleanupHeading h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+.suggestion {
+  padding: 14px 0;
+  border-top: 1px solid var(--border, #333);
+  margin-top: 12px;
+}
+.suggestionTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.suggestionTitle input {
+  accent-color: #ddd;
+}
+.suggestionTitle span {
+  margin-left: auto;
+  color: #777;
+  font-size: 12px;
+}
+.speechQuote {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 5px;
+  width: 100%;
+  padding: 10px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.speechQuote time {
+  font-size: 11px;
+  color: #777;
+}
+.speechQuote:hover {
+  color: #ccc;
+}
+.speechQuote:focus-visible {
+  outline: 2px solid #777;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
