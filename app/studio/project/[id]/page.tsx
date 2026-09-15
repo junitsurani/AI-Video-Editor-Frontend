@@ -602,6 +602,7 @@ export default function ProjectPage({
                   </div>
                 ) : panel === "transcript" ? (
                   <EditorTranscript
+                    aiAvailable={!!health?.ai_configured}
                     key={project.transcript_id || "untranscribed"}
                     project={project}
                     selected={selected}

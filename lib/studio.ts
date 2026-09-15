@@ -37,6 +37,20 @@ export type Job = {
   message: string;
 };
 export type Project = {
+  cleanup?: {
+    id: string;
+    transcript_id: string;
+    created_at: string;
+    suggestions: {
+      id: string;
+      kind: "retake" | "filler";
+      start: number;
+      end: number;
+      text: string;
+      reason: string;
+      keep: { start: number; end: number; text: string } | null;
+    }[];
+  };
   id: string;
   name: string;
   filename: string;
