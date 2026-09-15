@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   WandSparkles,
 } from "lucide-react";
+import { EditorMedia } from "@/components/editor-media";
 import { EditorFinishing } from "@/components/editor-finishing";
 import { EditorTranscript } from "@/components/editor-transcript";
 import { StudioShell } from "@/components/studio-shell";
@@ -50,6 +51,10 @@ export default function ProjectPage({
   });
   const [removeSilence, setRemoveSilence] = useState(true);
   const [prompt, setPrompt] = useState("");
+  const [clipCount, setClipCount] = useState(5);
+  const [clipMin, setClipMin] = useState(20);
+  const [clipMax, setClipMax] = useState(90);
+  const [chosenClips, setChosenClips] = useState<string[]>([]);
   const [panel, setPanel] = useState("edit");
   const [revisionId, setRevisionId] = useState("");
   const [viewSource, setViewSource] = useState(false);
@@ -149,6 +154,9 @@ export default function ProjectPage({
       aspect,
       captions,
       remove_silence: removeSilence,
+      clip_count: clipCount,
+      clip_min_seconds: clipMin,
+      clip_max_seconds: clipMax,
       prompt,
     });
   }
@@ -285,16 +293,16 @@ export default function ProjectPage({
                       <LoaderCircle size={20} className="spin" />
                       <div>
                         <strong>
-                          {project.job?.message || "Starting your edit"}
+                          {project.job?.status === "running" || project.job?.status === "queued" ? project.job.message : "Starting your edit"}
                         </strong>
                         <span>
                           You can leave this page. Your project will be here
                           when you return.
                         </span>
                       </div>
-                      <b>{project.job?.progress || 0}%</b>
+                      <b>{project.job?.status === "running" ? project.job.progress : 0}%</b>
                     </div>
-                    <progress value={project.job?.progress || 0} max={100} />
+                    <progress value={project.job?.status === "running" ? project.job.progress : 0} max={100} />
                     {project.job && !busy && <Button variant="ghost" size="sm" onClick={() => action(`/jobs/${project.job!.id}/cancel`, {})}>Cancel processing</Button>}
                   </div>
                 )}
@@ -304,6 +312,10 @@ export default function ProjectPage({
                     <Button variant="outline" size="sm" onClick={() => action(`/jobs/${project.job!.id}/retry`, {})}>Retry</Button>
                   </div>
                 )}
+                {project.job?.status === "needs_input" && !processing && (
+                  <div className="provider-note" role="status"><Sparkles size={16} /><p>{project.job.message} Update your direction below to continue.</p></div>
+                )}
+                {selected?.edit_summary?.message && !viewSource && <p className="subtle-note">{selected.edit_summary.message}</p>}
                 {actionError && (
                   <div className="error-message" role="alert">
                     {actionError}
@@ -371,14 +383,19 @@ export default function ProjectPage({
                         <span className="count">{project.clips.length}</span>
                       </h2>
                     </div>
+                    {project.clip_search && <p className="subtle-note">{project.clip_search.message}</p>}
+                    <Button variant="outline" disabled={processing || !chosenClips.some(id => project.clips.some(c => c.id === id))} onClick={() => action("/clips/render", { clips: chosenClips.filter(id => project.clips.some(c => c.id === id)) })}>
+                      Create selected clips ({chosenClips.filter(id => project.clips.some(c => c.id === id)).length})
+                    </Button>
                     {project.clips.map((c, i) => (
                       <article className="clip-candidate" key={c.id}>
+                        <input type="checkbox" aria-label={`Select ${c.title}`} disabled={!!processing} checked={chosenClips.includes(c.id)} onChange={e => setChosenClips(ids => e.target.checked ? [...ids, c.id] : ids.filter(id => id !== c.id))} />
                         <span className="clip-rank">
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         <div>
                           <h3>{c.title}</h3>
-                          <p className="clip-hook">“{c.hook}”</p>
+                          {c.hook && <p className="clip-hook">“{c.hook}”</p>}
                           <p>{c.reason}</p>
                           <span>
                             {duration(c.start)} – {duration(c.end)} ·{" "}
@@ -510,22 +527,22 @@ export default function ProjectPage({
                         })
                       }
                     />
-                    {project.mode === "clips" && (
-                      <div className="setting-group">
-                        <label
-                          className="field-heading"
-                          htmlFor="clip-direction"
-                        >
-                          Look for moments about
-                        </label>
-                        <Input
-                          id="clip-direction"
-                          value={prompt}
-                          onChange={(e) => setPrompt(e.target.value)}
-                          placeholder="e.g. discipline, building a business"
-                        />
+                    <EditorMedia project={project} plan={selected?.plan} disabled={!!processing || !sourceReady} onReload={load}
+                      onApply={plan => action("/revisions", { plan, prompt: "Updated supporting media", base_revision: selected?.id })} />
+                    <div className="setting-group">
+                      <label className="field-heading" htmlFor="edit-direction">What would you like to create?</label>
+                      <Input id="edit-direction" value={prompt} maxLength={2000} onChange={e => setPrompt(e.target.value)}
+                        placeholder={project.mode === "clips" ? "Find short clips about building a business" : "A concise product story with a strong opening"} disabled={!!processing} />
+                      <p className="subtle-note">Describe the result, length and tone. Supporting assets are used when relevant.</p>
+                    </div>
+                    {project.mode === "clips" && <div className="setting-group">
+                      <label className="field-heading" htmlFor="clip-count">Number of clips</label>
+                      <Input id="clip-count" type="number" min={1} max={15} value={clipCount} onChange={e => setClipCount(Number(e.target.value))} />
+                      <div className="trim-inputs">
+                        <label>Minimum seconds<Input type="number" min={20} max={90} value={clipMin} onChange={e => setClipMin(Number(e.target.value))} /></label>
+                        <label>Maximum seconds<Input type="number" min={clipMin} max={90} value={clipMax} onChange={e => setClipMax(Number(e.target.value))} /></label>
                       </div>
-                    )}
+                    </div>}
                     <Button
                       className="generate-button"
                       disabled={

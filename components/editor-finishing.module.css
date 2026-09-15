@@ -2,6 +2,12 @@
   border-top: 1px solid #333;
   margin: 20px 0;
 }
+.mediaFields { display: grid; gap: 12px; margin: 14px 0; }
+.mediaTimes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.assetList { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.assetList li { display: grid; gap: 5px; padding-bottom: 10px; border-bottom: 1px solid #292929; font-size: 12px; overflow-wrap: anywhere; }
+.assetList a { color: #eee; text-decoration: underline; text-underline-offset: 3px; }
+.assetList span { color: #999; line-height: 1.6; }
 .section summary {
   cursor: pointer;
   padding: 18px 0;

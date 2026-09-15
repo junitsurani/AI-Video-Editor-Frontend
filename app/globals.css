@@ -1154,6 +1154,9 @@ progress::-webkit-progress-value {
   height: 460px;
   aspect-ratio: 9/16;
 }
+.video-stage.portrait {
+  aspect-ratio: auto;
+}
 .preview-bottom {
   height: 44px;
   display: flex;
