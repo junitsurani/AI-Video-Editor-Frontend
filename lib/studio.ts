@@ -2,6 +2,8 @@ import { clearCsrf, csrfHeaders, redirectToLogin } from "./auth";
 import { demoMode } from "./demo";
 export type Mode = "social" | "inspirational" | "clips" | "course";
 export type Finishing = {
+  framing?: "auto" | "manual";
+  subject_id?: string | null;
   look: "natural" | "cinematic" | "warm" | "mono";
   fit: "contain" | "cover";
   focus_x?: number;
@@ -17,6 +19,9 @@ export type Finishing = {
   normalize_audio: boolean;
 };
 export type Plan = Finishing & {
+  version?: number;
+  beats?: number[];
+  caption_emphasis?: string[];
   cuts: { start: number; end: number }[];
   aspect: "16:9" | "9:16";
   captions: boolean;
@@ -77,13 +82,15 @@ export type Project = {
   transcript_id?: string;
   analysis?: {
     segments: { start: number; end: number; text: string }[];
-    words: unknown[];
+    words: { start: number; end: number; word: string }[];
+    tracking?: { engine: string; subjects: string[] };
     scenes: number[];
     silences: number[][];
     transcript_status: string;
   };
 };
 export type Health = {
+  worker_ready?: boolean;
   ai_configured: boolean;
   renderer: boolean;
   storage: string;
