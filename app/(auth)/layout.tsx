@@ -15,8 +15,8 @@ export default function AuthLayout({
     <main className={s.shell}>
       <div className={s.visual}>
         <Image
-          src="/reference/node-1.webp"
-          alt="Cinematic portrait through flowing golden silk"
+          src="/auth/cinematic-lens.jpg"
+          alt="Cinema lens in golden hour light"
           fill
           sizes="50vw"
           priority

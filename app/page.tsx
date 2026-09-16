@@ -35,7 +35,12 @@ import s from "./landing.module.css";
 const shots = {
   home: "/product/studio-home.jpg",
   upload: "/product/studio-upload.jpg",
-  workflows: "/product/studio-workflows.jpg",
+  editor: "/product/studio-editor.jpg",
+  cinematicEditor: "/product/studio-cinematic.jpg",
+  social: "/product/mode-social.jpg",
+  cinematic: "/product/mode-cinematic.jpg",
+  clips: "/product/mode-clips.jpg",
+  course: "/product/mode-course.jpg",
 };
 
 function Picture({
@@ -263,8 +268,8 @@ function AgentDemo() {
   return (
     <div className={`${s.demo} ${s.agentDemo}`}>
       <Picture
-        src={shots.home}
-        alt="Frame workspace used as the editing canvas"
+        src={shots.cinematicEditor}
+        alt="Frame cinematic project editor with a 9:16 preview"
         className={s.productBackdrop}
       />
       <div className={s.chat}>
@@ -448,9 +453,9 @@ export default function Home() {
           href="/studio?mode=social"
         />
         <ProductDemo
-          src={shots.workflows}
-          alt="The four Frame editing-mode cards on the studio dashboard"
-          label="Studio · What are we creating?"
+          src={shots.social}
+          alt="Talking-head studio still for a social edit"
+          label="Social · 9:16 talking head"
         />
       </Stage>
       <Stage reverse length={170}>
@@ -461,9 +466,9 @@ export default function Home() {
           href="/studio?mode=inspirational"
         />
         <ProductDemo
-          src={shots.home}
-          alt="Frame studio homepage including the cinematic workflow card"
-          label="Studio · Workspace"
+          src={shots.cinematic}
+          alt="Coastal mountain road at dusk for a cinematic edit"
+          label="Cinematic · atmosphere and motion"
         />
       </Stage>
       <Stage length={170}>
@@ -474,9 +479,9 @@ export default function Home() {
           href="/studio?mode=clips"
         />
         <ProductDemo
-          src={shots.upload}
-          alt="New project dialog with Social, Cinematic, Clips, and Courses modes"
-          label="Studio · New project"
+          src={shots.clips}
+          alt="Two-person interview still for long-form clip finding"
+          label="Clips · find the moments"
         />
       </Stage>
       <Stage reverse length={170}>
@@ -487,9 +492,9 @@ export default function Home() {
           href="/studio?mode=course"
         />
         <ProductDemo
-          src={shots.workflows}
-          alt="Courses and YouTube mode on the Frame dashboard"
-          label="Studio · Courses & YouTube"
+          src={shots.course}
+          alt="Instructor at a desk for course and YouTube cleanup"
+          label="Courses · landscape lesson"
         />
       </Stage>
       <Stage id="possibilities" length={155}>
@@ -500,10 +505,12 @@ export default function Home() {
           href="/studio"
         />
         <div className={`${s.demo} ${s.modelsDemo}`}>
-          <Picture
-            src={shots.workflows}
-            alt="Social, cinematic, clips, and course workflow cards"
-          />
+          <div className={s.modeGrid}>
+            <Picture src={shots.social} alt="Social edit" />
+            <Picture src={shots.cinematic} alt="Cinematic edit" />
+            <Picture src={shots.clips} alt="Long-form clips" />
+            <Picture src={shots.course} alt="Courses and YouTube" />
+          </div>
           <div className={s.modelPills}>
             {[
               { href: "/studio?mode=social", label: "Social edit", Icon: Captions },
@@ -546,8 +553,8 @@ export default function Home() {
         />
         <div className={`${s.demo} ${s.communityDemo}`}>
           <Picture
-            src={shots.home}
-            alt="Frame workspace with upload zone and recent projects"
+            src={shots.editor}
+            alt="Frame social project editor with a 9:16 boxing preview"
           />
           <Link href="/studio" className={s.clone}>
             Create project <ArrowUpRight size={16} />
