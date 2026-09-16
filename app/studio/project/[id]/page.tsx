@@ -112,16 +112,20 @@ export default function ProjectPage({
       active = false;
     };
   }, [id, receiveProject]);
-  const processing =
-    busy ||
-    project?.job?.status === "queued" ||
-    project?.job?.status === "running";
-  const sourceReady = !!project?.info.duration && project?.status !== "ingesting";
+  const jobBusy =
+    project?.job?.status === "queued" || project?.job?.status === "running";
+  const processing = busy || jobBusy;
+  const preparingSource =
+    project?.status === "ingesting" ||
+    (jobBusy && project?.job?.kind === "ingest");
+  const sourceReady =
+    !!project?.info.duration && project?.status !== "ingesting";
+  const styleLocked = busy || (jobBusy && project?.job?.kind !== "ingest");
   useEffect(() => {
-    if (!processing) return;
+    if (!processing && project?.status !== "ingesting") return;
     const timer = setInterval(load, 1600);
     return () => clearInterval(timer);
-  }, [processing, load]);
+  }, [processing, project?.status, load]);
   const selected: Revision | undefined =
     project?.revisions.find((r) => r.id === revisionId) ||
     project?.revisions.at(-1);
@@ -293,7 +297,11 @@ export default function ProjectPage({
                       <LoaderCircle size={20} className="spin" />
                       <div>
                         <strong>
-                          {project.job?.status === "running" || project.job?.status === "queued" ? project.job.message : "Starting your edit"}
+                          {project.job?.status === "running" || project.job?.status === "queued"
+                            ? project.job.message
+                            : preparingSource
+                              ? "Preparing your uploaded video"
+                              : "Starting your edit"}
                         </strong>
                         <span>
                           You can leave this page. Your project will be here
@@ -510,7 +518,7 @@ export default function ProjectPage({
                       project={project}
                       value={finishing}
                       onChange={setFinishing}
-                      disabled={!!processing || !sourceReady}
+                      disabled={styleLocked}
                       hasRevision={!!selected}
                       onReload={load}
                       onApply={() =>
@@ -527,13 +535,20 @@ export default function ProjectPage({
                         })
                       }
                     />
-                    <EditorMedia project={project} plan={selected?.plan} disabled={!!processing || !sourceReady} onReload={load}
+                    <EditorMedia project={project} plan={selected?.plan} disabled={styleLocked} onReload={load}
                       onApply={plan => action("/revisions", { plan, prompt: "Updated supporting media", base_revision: selected?.id })} />
                     <div className="setting-group">
                       <label className="field-heading" htmlFor="edit-direction">What would you like to create?</label>
                       <Input id="edit-direction" value={prompt} maxLength={2000} onChange={e => setPrompt(e.target.value)}
-                        placeholder={project.mode === "clips" ? "Find short clips about building a business" : "A concise product story with a strong opening"} disabled={!!processing} />
+                        placeholder={project.mode === "clips" ? "Find short clips about building a business" : "A concise product story with a strong opening"} disabled={styleLocked} />
                       <p className="subtle-note">Describe the result, length and tone. Supporting assets are used when relevant.</p>
+                      {!sourceReady && (
+                        <p className="subtle-note" role="status">
+                          {project.job?.kind === "ingest" && project.job.status === "failed"
+                            ? "Your file is uploaded, but it still needs to be prepared before Create first cut can run. Retry processing above."
+                            : "Preparing the original video. You can set style and write a prompt now; Create first cut unlocks when preparation finishes."}
+                        </p>
+                      )}
                     </div>
                     {project.mode === "clips" && <div className="setting-group">
                       <label className="field-heading" htmlFor="clip-count">Number of clips</label>
