@@ -1,6 +1,6 @@
 @font-face {
   font-family: FrameInter;
-  src: url("/reference/83afe278b6a6bb3c-s.p.3a6ba036.woff2") format("woff2");
+  src: local("Inter"), local("Inter Variable"), local("Arial");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -187,8 +187,8 @@
   position: absolute;
   inset: -50px;
   background:
-    linear-gradient(95deg, #171b16aa, #98734440),
-    url("/reference/node-0.webp") center/cover;
+    linear-gradient(95deg, #111c, #1118),
+    url("/product/studio-home.jpg") center/cover;
   filter: blur(26px);
   opacity: 0.8;
 }
@@ -379,6 +379,37 @@
   left: 18px;
   font-size: 10px;
   color: #555;
+}
+.productHero {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transform-origin: center;
+}
+.productShot,
+.productBackdrop {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 13px;
+  border: 1px solid #333;
+}
+.productDemo {
+  overflow: hidden;
+}
+.productBackdrop {
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  height: auto;
+  aspect-ratio: 16/10;
+  left: 0;
+  top: 18%;
+  opacity: 0.9;
 }
 .demoFooter {
   display: flex;
