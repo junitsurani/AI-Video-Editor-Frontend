@@ -104,6 +104,7 @@ export type Project = {
   }[];
   assets?: SupportingAsset[];
   clip_search?: { requested: number; returned: number; message: string };
+  clip_options?: { aspect?: "9:16" | "16:9"; combine_reel?: boolean };
   music?: { id: string; name: string; duration: number }[];
   transcript_id?: string;
   analysis?: {
@@ -194,7 +195,7 @@ export const modes = [
     id: "clips" as Mode,
     title: "Clipping",
     description: "Find the moments worth sharing.",
-    detail: "Rank 20–90s highlights, then style the ones you pick.",
+    detail: "Rank highlights, then choose separate shorts or one combined reel.",
     image: "/workflows/clips.webp",
     label: "STREAMS · PODCASTS",
   },
@@ -215,6 +216,10 @@ export const lookPresets = [
   { id: "premium" as LookPreset, title: "Premium", detail: "Restrained grade and catalog B-roll." },
 ];
 export function duration(n: number) {
-  const s = Math.floor(n);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const s = Math.max(0, Math.floor(Number.isFinite(n) ? n : 0));
+  const hours = Math.floor(s / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  const seconds = String(s % 60).padStart(2, "0");
+  if (hours) return `${hours}:${String(minutes).padStart(2, "0")}:${seconds}`;
+  return `${minutes}:${seconds}`;
 }

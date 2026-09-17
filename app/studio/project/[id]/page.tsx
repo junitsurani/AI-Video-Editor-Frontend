@@ -15,8 +15,9 @@ import {
   SlidersHorizontal,
   WandSparkles,
 } from "lucide-react";
-import { EditorMedia } from "@/components/editor-media";
+import { TimecodeField } from "@/components/timecode-field";
 import { EditorFinishing } from "@/components/editor-finishing";
+import { EditorMedia } from "@/components/editor-media";
 import { EditorTranscript } from "@/components/editor-transcript";
 import { StudioShell } from "@/components/studio-shell";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ export default function ProjectPage({
   const [clipCount, setClipCount] = useState(5);
   const [clipMin, setClipMin] = useState(20);
   const [clipMax, setClipMax] = useState(90);
+  const [clipLayout, setClipLayout] = useState<"separate" | "combined">("separate");
   const [chosenClips, setChosenClips] = useState<string[]>([]);
   const [lookPreset, setLookPreset] = useState<LookPreset>("simple");
   const [clarifyAnswer, setClarifyAnswer] = useState("");
@@ -66,8 +68,8 @@ export default function ProjectPage({
   const [revisionId, setRevisionId] = useState("");
   const [viewSource, setViewSource] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [trimStart, setTrimStart] = useState("0");
-  const [trimEnd, setTrimEnd] = useState("");
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(0);
   const video = useRef<HTMLVideoElement>(null);
   const pendingSeek = useRef<number | null>(null);
   const initial = useRef(false);
@@ -75,9 +77,15 @@ export default function ProjectPage({
     setProject(p);
     setError("");
     if (!initial.current) {
+      const combined =
+        p.mode === "clips" &&
+        (Boolean(p.clip_options?.combine_reel) ||
+          (p.revisions.at(-1)?.plan.cuts.length ?? 0) > 1);
+      if (p.mode === "clips") setClipLayout(combined ? "combined" : "separate");
       setAspect(
         p.revisions.at(-1)?.plan.aspect ||
-          (p.mode === "course" ? "16:9" : "9:16"),
+          p.clip_options?.aspect ||
+          (p.mode === "course" || combined ? "16:9" : "9:16"),
       );
       setCaptions(
         p.revisions.at(-1)?.plan.captions ?? p.mode !== "course",
@@ -97,7 +105,8 @@ export default function ProjectPage({
           normalize_audio: true,
         },
       );
-      setTrimEnd(p.info.duration.toFixed(2));
+      setTrimStart(0);
+      setTrimEnd(p.info.duration);
       if (p.look_preset) setLookPreset(p.look_preset);
       initial.current = p.info.duration > 0;
     }
@@ -183,6 +192,7 @@ export default function ProjectPage({
       clip_min_seconds: clipMin,
       clip_max_seconds: clipMax,
       prompt,
+      combine_reel: project?.mode === "clips" ? clipLayout === "combined" : undefined,
       look_preset: project?.mode === "social" ? lookPreset : undefined,
     });
   }
@@ -190,7 +200,7 @@ export default function ProjectPage({
     if (!project) return;
     const plan: Plan = {
       ...finishing,
-      cuts: [{ start: Number(trimStart), end: Number(trimEnd) }],
+      cuts: [{ start: trimStart, end: trimEnd }],
       aspect,
       captions,
     };
@@ -497,10 +507,53 @@ export default function ProjectPage({
                       </h2>
                     </div>
                     {project.clip_search && <p className="subtle-note">{project.clip_search.message}</p>}
-                    <p className="subtle-note">Selected highlights are cut from the original, then given the same captioned 9:16 treatment as a talking-head edit.</p>
-                    <Button variant="outline" disabled={processing || !chosenClips.some(id => project.clips.some(c => c.id === id))} onClick={() => action("/clips/render", { clips: chosenClips.filter(id => project.clips.some(c => c.id === id)) })}>
-                      Style selected clips ({chosenClips.filter(id => project.clips.some(c => c.id === id)).length})
-                    </Button>
+                    <p className="subtle-note">
+                      Style selected moments as separate {aspect} clips, or combine them into one {aspect} reel.
+                    </p>
+                    <div className="clip-actions">
+                      <Button
+                        variant="outline"
+                        disabled={processing || !chosenClips.some((id) => project.clips.some((c) => c.id === id))}
+                        onClick={() =>
+                          action("/clips/render", {
+                            clips: chosenClips.filter((id) => project.clips.some((c) => c.id === id)),
+                            aspect,
+                          })
+                        }
+                      >
+                        Style selected as separate {aspect} clips (
+                        {chosenClips.filter((id) => project.clips.some((c) => c.id === id)).length})
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled={processing || project.clips.length === 0}
+                        onClick={() => {
+                          const ids = chosenClips.filter((id) =>
+                            project.clips.some((c) => c.id === id),
+                          );
+                          const payload = {
+                            prompt: "Combine highlights into one video",
+                            combine_reel: true,
+                            aspect,
+                            captions,
+                            clips: ids.length ? ids : project.clips.map((c) => c.id),
+                            reuse_clips: true,
+                          };
+                          if (selected)
+                            action("/revisions", { ...payload, base_revision: selected.id });
+                          else
+                            action("/analyze", {
+                              ...finishing,
+                              ...payload,
+                              clip_count: clipCount,
+                              clip_min_seconds: clipMin,
+                              clip_max_seconds: clipMax,
+                            });
+                        }}
+                      >
+                        Combine {chosenClips.some((id) => project.clips.some((c) => c.id === id)) ? "selected" : "all"} into one {aspect} reel
+                      </Button>
+                    </div>
                     {project.clips.map((c, i) => (
                       <article className="clip-candidate" key={c.id}>
                         <input type="checkbox" aria-label={`Select ${c.title}`} disabled={!!processing} checked={chosenClips.includes(c.id)} onChange={e => setChosenClips(ids => e.target.checked ? [...ids, c.id] : ids.filter(id => id !== c.id))} />
@@ -520,7 +573,7 @@ export default function ProjectPage({
                         <Button
                           variant="outline"
                           disabled={processing}
-                          onClick={() => action("/clips/" + c.id, {})}
+                          onClick={() => action("/clips/" + c.id, { aspect })}
                         >
                           Edit clip <ArrowUp size={14} />
                         </Button>
@@ -559,6 +612,41 @@ export default function ProjectPage({
                         : "Let’s make the first cut"}
                     </h2>
                     <p>{mode?.detail}</p>
+                    {project.mode === "clips" && (
+                      <div className="setting-group">
+                        <label className="field-heading">Clipping output</label>
+                        <div className="look-presets" role="radiogroup" aria-label="Clipping output">
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={clipLayout === "separate"}
+                            disabled={styleLocked}
+                            className={clipLayout === "separate" ? "selected" : ""}
+                            onClick={() => {
+                              setClipLayout("separate");
+                              setAspect("9:16");
+                            }}
+                          >
+                            <strong>Separate clips</strong>
+                            <span>Rank stand-alone highlights. You pick which ones to style. Starts in 9:16.</span>
+                          </button>
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={clipLayout === "combined"}
+                            disabled={styleLocked}
+                            className={clipLayout === "combined" ? "selected" : ""}
+                            onClick={() => {
+                              setClipLayout("combined");
+                              setAspect("16:9");
+                            }}
+                          >
+                            <strong>One highlight reel</strong>
+                            <span>Stitch the strongest moments into a single video. Starts in 16:9.</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     <div className="setting-group">
                       <label className="field-heading">Format</label>
                       <div className="format-buttons">
@@ -580,7 +668,11 @@ export default function ProjectPage({
                         </button>
                       </div>
                       <p className="subtle-note">
-                        {finishing.framing === "auto"
+                        {project.mode === "clips"
+                          ? clipLayout === "combined"
+                            ? `One ${aspect} video of the ranked highlights, in source order.`
+                            : `Separate ${aspect} clips. Change format if you want landscape shorts.`
+                          : finishing.framing === "auto"
                           ? "Follow the subject, with a wider view when framing is uncertain."
                           : finishing.fit === "cover"
                           ? "Fill the frame. Adjust focus in Style & sound."
@@ -676,7 +768,9 @@ export default function ProjectPage({
                       <Input id="edit-direction" value={prompt} maxLength={2000} onChange={e => setPrompt(e.target.value)}
                         placeholder={
                           project.mode === "clips"
-                            ? "Find 8 clips about discipline from this stream"
+                            ? clipLayout === "combined"
+                              ? "The most important complete moments, combined into one reel"
+                              : "Find the strongest stand-alone highlights from this stream"
                             : project.mode === "inspirational"
                               ? "Cinematic motivational cut. Keep the speech, captions on the key lines, music if I uploaded a track."
                               : project.mode === "social"
@@ -685,7 +779,9 @@ export default function ProjectPage({
                         } disabled={styleLocked} />
                       <p className="subtle-note">
                         {project.mode === "clips"
-                          ? "Describe the topic, how many clips, and a duration range. After you pick highlights, Frame styles each one."
+                          ? clipLayout === "combined"
+                            ? "Frame ranks complete moments, then concatenates them into one captioned video at the format above."
+                            : "Frame ranks complete moments. You choose which ones to style as separate clips at the format above."
                           : "Describe the result, length and tone. Raw footage is edited; captions stay on when speech is found."}
                       </p>
                       {!sourceReady && (
@@ -697,11 +793,16 @@ export default function ProjectPage({
                       )}
                     </div>
                     {project.mode === "clips" && <div className="setting-group">
-                      <label className="field-heading" htmlFor="clip-count">Number of clips</label>
+                      <label className="field-heading" htmlFor="clip-count">Number of highlights</label>
                       <Input id="clip-count" type="number" min={1} max={15} value={clipCount} onChange={e => setClipCount(Number(e.target.value))} />
+                      <p className="subtle-note">
+                        {clipLayout === "combined"
+                          ? "How many complete moments to stitch into the reel."
+                          : "How many stand-alone moments to rank. You choose which ones to style next."}
+                      </p>
                       <div className="trim-inputs">
-                        <label>Minimum seconds<Input type="number" min={20} max={90} value={clipMin} onChange={e => setClipMin(Number(e.target.value))} /></label>
-                        <label>Maximum seconds<Input type="number" min={clipMin} max={90} value={clipMax} onChange={e => setClipMax(Number(e.target.value))} /></label>
+                        <label>Shortest moment (sec)<Input type="number" min={20} max={90} value={clipMin} onChange={e => setClipMin(Number(e.target.value))} /></label>
+                        <label>Longest moment (sec)<Input type="number" min={clipMin} max={90} value={clipMax} onChange={e => setClipMax(Number(e.target.value))} /></label>
                       </div>
                     </div>}
                     <Button
@@ -718,7 +819,9 @@ export default function ProjectPage({
                         <WandSparkles size={17} />
                       )}{" "}
                       {project.mode === "clips"
-                        ? "Find highlights"
+                        ? clipLayout === "combined"
+                          ? "Create highlight reel"
+                          : "Find highlights"
                         : selected
                           ? "Rebuild from original"
                           : "Create first cut"}
@@ -738,36 +841,30 @@ export default function ProjectPage({
                         <SlidersHorizontal size={16} /> Manual trim
                       </summary>
                       <p className="subtle-note">
-                        Choose a range in seconds from your original.
+                        Set start and end in minutes and seconds. Original is {duration(project.info.duration)}.
                       </p>
                       <div className="trim-inputs">
-                        <label>
-                          Start
-                          <Input
-                            type="number"
-                            min="0"
-                            max={project.info.duration}
-                            step="0.1"
-                            value={trimStart}
-                            onChange={(e) => setTrimStart(e.target.value)}
-                          />
-                        </label>
-                        <label>
-                          End
-                          <Input
-                            type="number"
-                            min="0.1"
-                            max={project.info.duration}
-                            step="0.1"
-                            value={trimEnd}
-                            onChange={(e) => setTrimEnd(e.target.value)}
-                          />
-                        </label>
+                        <TimecodeField
+                          label="Start"
+                          value={trimStart}
+                          min={0}
+                          max={Math.max(0, project.info.duration - 0.1)}
+                          disabled={!sourceReady || processing}
+                          onChange={setTrimStart}
+                        />
+                        <TimecodeField
+                          label="End"
+                          value={trimEnd}
+                          min={0.1}
+                          max={project.info.duration}
+                          disabled={!sourceReady || processing}
+                          onChange={setTrimEnd}
+                        />
                       </div>
                       <Button
                         variant="outline"
                         disabled={
-                          !sourceReady || processing || Number(trimEnd) <= Number(trimStart)
+                          !sourceReady || processing || trimEnd <= trimStart
                         }
                         onClick={manual}
                       >
