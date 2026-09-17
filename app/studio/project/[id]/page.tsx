@@ -25,12 +25,15 @@ import { Switch } from "@/components/ui/switch";
 import {
   api,
   modes,
+  laterModes,
+  lookPresets,
   duration,
   type Project,
   type Plan,
   type Finishing,
   type Health,
   type Revision,
+  type LookPreset,
 } from "@/lib/studio";
 export default function ProjectPage({
   params,
@@ -55,6 +58,9 @@ export default function ProjectPage({
   const [clipMin, setClipMin] = useState(20);
   const [clipMax, setClipMax] = useState(90);
   const [chosenClips, setChosenClips] = useState<string[]>([]);
+  const [lookPreset, setLookPreset] = useState<LookPreset>("simple");
+  const [clarifyAnswer, setClarifyAnswer] = useState("");
+  const [clarifyOption, setClarifyOption] = useState("");
   const [panel, setPanel] = useState("edit");
   const [revisionId, setRevisionId] = useState("");
   const [viewSource, setViewSource] = useState(false);
@@ -91,6 +97,7 @@ export default function ProjectPage({
         },
       );
       setTrimEnd(p.info.duration.toFixed(2));
+      if (p.look_preset) setLookPreset(p.look_preset);
       initial.current = p.info.duration > 0;
     }
   }, []);
@@ -144,7 +151,7 @@ export default function ProjectPage({
     setAspect(selected.plan.aspect);
     setCaptions(selected.plan.captions);
   }
-  const mode = modes.find((m) => m.id === project?.mode);
+  const mode = modes.find((m) => m.id === project?.mode) || laterModes.find((m) => m.id === project?.mode);
   async function action(path: string, data: unknown) {
     setActionError("");
     setBusy(true);
@@ -169,6 +176,7 @@ export default function ProjectPage({
       clip_min_seconds: clipMin,
       clip_max_seconds: clipMax,
       prompt,
+      look_preset: project?.mode === "social" ? lookPreset : undefined,
     });
   }
   function manual() {
@@ -328,9 +336,76 @@ export default function ProjectPage({
                   </div>
                 )}
                 {project.job?.status === "needs_input" && !processing && (
-                  <div className="provider-note" role="status"><Sparkles size={16} /><p>{project.job.message} Update your direction below to continue.</p></div>
+                  <div className="clarify-panel" role="form">
+                    <Sparkles size={16} />
+                    <div>
+                      <strong>One thing before this edit can continue</strong>
+                      <p>{project.job.clarification?.question || project.job.message}</p>
+                      {project.job.clarification?.kind === "choice" && (
+                        <div className="look-presets">
+                          {(project.job.clarification.options || []).map((option) => (
+                            <button
+                              type="button"
+                              key={option.id}
+                              className={clarifyOption === option.id ? "selected" : ""}
+                              onClick={() => setClarifyOption(option.id)}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {project.job.clarification?.kind === "duration" && (
+                        <Input
+                          type="number"
+                          min={1}
+                          max={10800}
+                          aria-label="Duration in seconds"
+                          value={clarifyAnswer}
+                          onChange={(e) => setClarifyAnswer(e.target.value)}
+                        />
+                      )}
+                      {project.job.clarification?.kind === "topic" && (
+                        <Input
+                          aria-label="Clarify the topic"
+                          value={clarifyAnswer}
+                          onChange={(e) => setClarifyAnswer(e.target.value)}
+                          placeholder="Answer in a sentence…"
+                        />
+                      )}
+                      {project.job.clarification?.kind === "missing_asset" && (
+                        <p className="subtle-note">Upload the file in Style & sound, then continue.</p>
+                      )}
+                      <Button
+                        className="generate-button"
+                        disabled={
+                          (project.job.clarification?.kind === "choice" && !clarifyOption) ||
+                          (project.job.clarification?.kind === "topic" && !clarifyAnswer.trim()) ||
+                          (project.job.clarification?.kind === "duration" && !clarifyAnswer)
+                        }
+                        onClick={() =>
+                          action(`/jobs/${project.job!.id}/continue`, {
+                            option: clarifyOption || undefined,
+                            answer: clarifyAnswer || undefined,
+                          })
+                        }
+                      >
+                        Continue
+                      </Button>
+                    </div>
+                  </div>
                 )}
                 {selected?.edit_summary?.message && !viewSource && <p className="subtle-note">{selected.edit_summary.message}</p>}
+                {!viewSource && selected?.stills ? (
+                  <div className="diagnostic-stills">
+                    {(["start", "mid", "end"] as const).map((at) => {
+                      const url = selected.stills?.[at];
+                      return url ? (
+                        <img key={at} src={url} alt={`Diagnostic frame at ${at}`} />
+                      ) : null;
+                    })}
+                  </div>
+                ) : null}
                 {actionError && (
                   <div className="error-message" role="alert">
                     {actionError}
@@ -524,6 +599,30 @@ export default function ProjectPage({
                         }
                       />
                     </div>
+                    {project.mode === "social" && (
+                      <div className="setting-group">
+                        <label className="field-heading">Talking-head look</label>
+                        <div className="look-presets" role="radiogroup" aria-label="Talking-head look">
+                          {lookPresets.map((look) => (
+                            <button
+                              type="button"
+                              key={look.id}
+                              disabled={styleLocked}
+                              className={lookPreset === look.id ? "selected" : ""}
+                              onClick={() => setLookPreset(look.id)}
+                            >
+                              <strong>{look.title}</strong>
+                              <span>{look.detail}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selected ? (
+                      <details className="manual-edit" open>
+                        <summary>
+                          <SlidersHorizontal size={16} /> Style & sound
+                        </summary>
                     <EditorFinishing
                       project={project}
                       value={finishing}
@@ -547,6 +646,10 @@ export default function ProjectPage({
                     />
                     <EditorMedia project={project} plan={selected?.plan} disabled={styleLocked} onReload={load}
                       onApply={plan => action("/revisions", { plan, prompt: "Updated supporting media", base_revision: selected?.id })} />
+                      </details>
+                    ) : (
+                      <p className="subtle-note">Finishing controls open after the first cut.</p>
+                    )}
                     <div className="setting-group">
                       <label className="field-heading" htmlFor="edit-direction">What would you like to create?</label>
                       <Input id="edit-direction" value={prompt} maxLength={2000} onChange={e => setPrompt(e.target.value)}

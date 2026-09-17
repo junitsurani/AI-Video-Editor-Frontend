@@ -443,13 +443,13 @@ export default function Home() {
         <AgentDemo />
       </Stage>
       <div className={s.sectionTitle} id="modes">
-        <h2>Four editing modes</h2>
+        <h2>Three automatic workflows</h2>
       </div>
       <Stage id="social" length={170}>
         <Copy
-          title="Social edit"
-          text="Portrait output, timed captions, tighter pacing, and conservative punch-ins. Built for talking heads, Reels, and Shorts."
-          action="Start a social edit"
+          title="Talking head"
+          text="Raw take in. Pick Simple, Retention, or Premium. Silence out, word-onset captions, punch density, and catalog B-roll only when it matches."
+          action="Start a talking-head edit"
           href="/studio?mode=social"
         />
         <ProductDemo
@@ -460,9 +460,9 @@ export default function Home() {
       </Stage>
       <Stage reverse length={170}>
         <Copy
-          title="Cinematic edit"
-          text="Keep more of the performance. Apply a cinematic look, fades, and music mixing when you want atmosphere more than aggressive silence cuts."
-          action="Start a cinematic edit"
+          title="Motivational"
+          text="Keep the speech. Hook, build, payoff. Music ducks under dialogue, then rises after the key line, with catalog cutaways."
+          action="Start a motivational edit"
           href="/studio?mode=inspirational"
         />
         <ProductDemo
@@ -473,8 +473,8 @@ export default function Home() {
       </Stage>
       <Stage length={170}>
         <Copy
-          title="Long-form to clips"
-          text="Analyze a longer recording, rank standalone highlights, then style the ones you keep. Needs enough source duration for 20–90 second candidates."
+          title="Clipping"
+          text="Analyze a longer recording, rank standalone 20–90 second highlights, then style the ones you pick."
           action="Find clips"
           href="/studio?mode=clips"
         />
@@ -487,9 +487,9 @@ export default function Home() {
       <Stage reverse length={170}>
         <Copy
           title="Courses & YouTube"
-          text="Landscape-first cleanup: remove dead air, level audio, and keep the lesson readable. Dedicated screen/face switching is still a later engine."
-          action="Start a course edit"
-          href="/studio?mode=course"
+          text="Dual-source course cleanup is not in this release. Talking-head, clipping, and motivational are the finished paths."
+          action="Go to studio"
+          href="/studio"
         />
         <ProductDemo
           src={shots.course}
@@ -500,7 +500,7 @@ export default function Home() {
       <Stage id="possibilities" length={155}>
         <Copy
           title="Start from the mode you need"
-          text="Every card on the dashboard opens the same upload flow with a different default: captions and 9:16, cinematic grade, highlight search, or lesson cleanup."
+          text="Every card on the dashboard opens talking-head, clipping, or motivational. Course cleanup comes later."
           action="Go to studio"
           href="/studio"
         />
@@ -513,24 +513,24 @@ export default function Home() {
           </div>
           <div className={s.modelPills}>
             {[
-              { href: "/studio?mode=social", label: "Social edit", Icon: Captions },
+              { href: "/studio?mode=social", label: "Talking head", Icon: Captions },
               {
                 href: "/studio?mode=inspirational",
-                label: "Cinematic edit",
+                label: "Motivational",
                 Icon: Film,
               },
-              { href: "/studio?mode=clips", label: "Long-form clips", Icon: Scissors },
-              { href: "/studio?mode=course", label: "Courses & YouTube", Icon: BookOpen },
+              { href: "/studio?mode=clips", label: "Clipping", Icon: Scissors },
+              { href: "/studio", label: "Courses later", Icon: BookOpen },
             ]
               .concat([
-                { href: "/studio?mode=social", label: "Social edit", Icon: Captions },
+                { href: "/studio?mode=social", label: "Talking head", Icon: Captions },
                 {
                   href: "/studio?mode=inspirational",
-                  label: "Cinematic edit",
+                  label: "Motivational",
                   Icon: Film,
                 },
-                { href: "/studio?mode=clips", label: "Long-form clips", Icon: Scissors },
-                { href: "/studio?mode=course", label: "Courses & YouTube", Icon: BookOpen },
+                { href: "/studio?mode=clips", label: "Clipping", Icon: Scissors },
+                { href: "/studio", label: "Courses later", Icon: BookOpen },
               ])
               .map((x, i) => (
                 <Link href={x.href} key={`${x.label}-${i}`}>

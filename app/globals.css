@@ -62,6 +62,7 @@
 }
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 body {
   margin: 0;
@@ -70,6 +71,7 @@ body {
   background: var(--background);
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 button,
 a,
@@ -1002,6 +1004,63 @@ footer a:last-child {
   border-color: var(--border);
   color: var(--foreground);
 }
+.look-presets {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.look-presets button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  color: var(--muted-foreground);
+  position: relative;
+}
+.look-presets button strong {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+.look-presets button span {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.look-presets button.selected {
+  background: var(--card);
+  border-color: #999;
+  color: var(--foreground);
+}
+.clarify-panel {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+.clarify-panel p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 6px 0 12px;
+}
+.diagnostic-stills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+.diagnostic-stills img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #111;
+}
 .modal-submit {
   height: 43px;
 }
@@ -1802,8 +1861,12 @@ progress::-webkit-progress-value {
     display: none;
   }
   .upload-dialog {
-    padding: 25px 20px !important;
-    max-width: calc(100% - 30px) !important;
+    padding: 25px 16px !important;
+    max-width: calc(100% - 16px) !important;
+    overflow-x: hidden;
+  }
+  .modal-modes {
+    grid-template-columns: 1fr;
   }
   .modal-modes button {
     font-size: 12px;

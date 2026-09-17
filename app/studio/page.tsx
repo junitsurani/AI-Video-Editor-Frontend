@@ -33,9 +33,12 @@ import {
 import {
   api,
   modes,
+  laterModes,
+  lookPresets,
   duration,
   type Project,
   type Mode,
+  type LookPreset,
   type Health,
 } from "@/lib/studio";
 const icons = [Captions, Film, Scissors, BookOpen];
@@ -61,6 +64,7 @@ function StudioContent() {
   const [error, setError] = useState("");
   const [modal, setModal] = useState(false);
   const [mode, setMode] = useState<Mode>("social");
+  const [lookPreset, setLookPreset] = useState<LookPreset>("simple");
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -127,7 +131,7 @@ function StudioContent() {
     setUploadError("");
     setProgress(0);
     try {
-      const p = await uploadVideo(file, mode, setProgress);
+      const p = await uploadVideo(file, mode, setProgress, mode === "social" ? lookPreset : undefined);
       setProgress(100);
       router.push("/studio/project/" + p.id);
     } catch (e) {
@@ -197,7 +201,7 @@ function StudioContent() {
             <section className="edit-workflows">
               <div className="workspace-section-heading">
                 <h2>What are we creating?</h2>
-                <span>One upload. Four possibilities.</span>
+                <span>One upload. Three complete workflows.</span>
               </div>
               <div className="studio-workflows">
                 {modes.map((m, i) => {
@@ -303,7 +307,7 @@ function StudioContent() {
                       </span>
                     </div>
                     <p>
-                      {modes.find((m) => m.id === p.mode)?.title}
+                      {modes.find((m) => m.id === p.mode)?.title || laterModes.find((m) => m.id === p.mode)?.title}
                       <span>
                         {new Date(p.created_at).toLocaleDateString(undefined, {
                           month: "short",
@@ -413,6 +417,27 @@ function StudioContent() {
               );
             })}
           </div>
+          {mode === "social" && (
+            <>
+              <label className="field-heading">Talking-head look</label>
+              <div className="look-presets" role="radiogroup" aria-label="Talking-head look">
+                {lookPresets.map((look) => (
+                  <button
+                    type="button"
+                    key={look.id}
+                    disabled={uploading}
+                    className={lookPreset === look.id ? "selected" : ""}
+                    onClick={() => setLookPreset(look.id)}
+                  >
+                    <strong>{look.title}</strong>
+                    <span>{look.detail}</span>
+                    {lookPreset === look.id && <Check size={14} />}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          <p className="privacy-note">{laterModes[0].title} is coming later.</p>
           {uploading && (
             <div className="upload-progress" aria-live="polite">
               <div>
