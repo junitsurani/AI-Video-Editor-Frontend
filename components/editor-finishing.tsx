@@ -156,13 +156,18 @@ export function EditorFinishing({
             }
           >
             <option value="none">Steady</option>
-            <option value="push">Gentle push-in</option>
-            <option value="punch">Emphasize key moments</option>
+            <option value="push">Slow zoom-in</option>
+            <option value="punch">Punch-in on key lines</option>
           </select>
         </label>
         {value.motion === "punch" && (
           <p className={styles.note}>
-            Uses analyzed speech moments for restrained punch-ins. Stays steady when no moments are identified.
+            Short zoom-ins on analyzed speech beats. Stays steady when no moments are identified.
+          </p>
+        )}
+        {value.motion === "push" && (
+          <p className={styles.note}>
+            A slow zoom across the take. Pair with a short fade for a cleaner open and close.
           </p>
         )}
         <label className={styles.field}>
@@ -219,7 +224,7 @@ export function EditorFinishing({
             </p>
           )}
         <label className={styles.field}>
-          Caption position
+          Caption layout
           <select
             value={value.caption_position ?? "lower"}
             onChange={(e) =>
@@ -229,10 +234,16 @@ export function EditorFinishing({
               })
             }
           >
-            <option value="lower">Lower safe area</option>
-            <option value="center">Center</option>
+            <option value="lower">Normal — lower third</option>
+            <option value="center">Normal — center</option>
+            <option value="behind">Behind the speaker</option>
           </select>
         </label>
+        {value.caption_position === "behind" && (
+          <p className={styles.note}>
+            Spoken captions sit behind the tracked person. If no face is found, they stay centered in front.
+          </p>
+        )}
         <label className={styles.field}>
           Opening &amp; closing fade
           <select
@@ -240,6 +251,8 @@ export function EditorFinishing({
             onChange={(e) => patch({ fade: +e.target.value })}
           >
             <option value="0">None</option>
+            <option value="0.22">Short · 0.2 seconds</option>
+            <option value="0.35">Medium · 0.35 seconds</option>
             <option value="0.5">Soft · 0.5 seconds</option>
             <option value="1">Slow · 1 second</option>
           </select>

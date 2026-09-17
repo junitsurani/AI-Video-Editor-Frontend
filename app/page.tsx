@@ -474,7 +474,7 @@ export default function Home() {
       <Stage length={170}>
         <Copy
           title="Clipping"
-          text="Analyze a longer recording, rank standalone 20–90 second highlights, then style the ones you pick."
+          text="Upload a finished long-form vlog, podcast, stream, or interview. Frame ranks standalone 20–90 second highlights, then you style or combine the ones you pick."
           action="Find clips"
           href="/studio?mode=clips"
         />

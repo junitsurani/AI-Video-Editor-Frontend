@@ -437,6 +437,11 @@ function StudioContent() {
               </div>
             </>
           )}
+          {mode === "clips" && (
+            <p className="privacy-note">
+              Clipping is meant for long-form footage. A short talking-head take can still be ranked, but the job is finding shareable moments inside a finished episode or vlog.
+            </p>
+          )}
           <p className="privacy-note">{laterModes[0].title} is coming later.</p>
           {uploading && (
             <div className="upload-progress" aria-live="polite">

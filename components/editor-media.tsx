@@ -28,7 +28,7 @@ export function EditorMedia({ project, plan, disabled, onReload, onApply }: {
   const [end, setEnd] = useState("3");
   const [sourceStart, setSourceStart] = useState("0");
   const [layout, setLayout] = useState<"cover" | "split">("cover");
-  const [position, setPosition] = useState<"top" | "center">("top");
+  const [position, setPosition] = useState<"top" | "center" | "behind">("top");
   const [volume, setVolume] = useState("0.15");
   const busy = disabled || uploading;
   const total = plan?.cuts.reduce((sum, cut) => sum + cut.end - cut.start, 0) || 0;
@@ -109,13 +109,14 @@ export function EditorMedia({ project, plan, disabled, onReload, onApply }: {
             <div className={styles.mediaTimes}><label className={styles.field}>Start (s)<Input type="number" min={0} max={total} step={.1} value={start} onChange={e => setStart(e.target.value)} /></label><label className={styles.field}>End (s)<Input type="number" min={.1} max={total} step={.1} value={end} onChange={e => setEnd(e.target.value)} /></label></div>
             {kind !== "graphics" && <label className={styles.field}>Asset in point (s)<Input type="number" min={0} step={.1} value={sourceStart} onChange={e => setSourceStart(e.target.value)} /></label>}
             {kind === "broll" && <label className={styles.field}>Layout<select value={layout} onChange={e => setLayout(e.target.value as typeof layout)}><option value="cover">Full frame</option><option value="split">50/50 split</option></select></label>}
-            {kind === "graphics" && <label className={styles.field}>Position<select value={position} onChange={e => setPosition(e.target.value as typeof position)}><option value="top">Top</option><option value="center">Center</option></select></label>}
+            {kind === "graphics" && <label className={styles.field}>Position<select value={position} onChange={e => setPosition(e.target.value as typeof position)}><option value="top">Top</option><option value="center">Center</option><option value="behind">Behind speaker</option></select></label>}
+            {kind === "graphics" && position === "behind" && <p className={styles.note}>A short heading sits behind the tracked speaker. Dialogue still follows Caption layout in Style &amp; sound.</p>}
             {kind === "sfx" && <label className={styles.field}>Volume<Input type="number" min={0} max={.5} step={.05} value={volume} onChange={e => setVolume(e.target.value)} /></label>}
             <Button size="sm" variant="outline" onClick={addLayer}>Add to edit</Button>
           </div>
         </details>
         {(["broll", "graphics", "sfx"] as const).map(group => (plan[group] || []).map((layer, i) => <div className={styles.row} key={`${group}-${i}`}>
-          <span>{group === "graphics" ? "Text" : group === "broll" ? "B-roll" : "Sound effect"} · {layer.start.toFixed(1)}–{layer.end.toFixed(1)}s</span>
+          <span>{group === "graphics" ? (`Text${"position" in layer && layer.position === "behind" ? " behind speaker" : ""}`) : group === "broll" ? "B-roll" : "Sound effect"} · {layer.start.toFixed(1)}–{layer.end.toFixed(1)}s</span>
           <Button variant="ghost" size="sm" aria-label={`Remove ${group} layer ${i + 1}`} onClick={() => onApply({ ...plan, [group]: plan[group]?.filter((_, index) => index !== i) })}><Trash2 size={14} /></Button>
         </div>))}
         <label className={styles.field}>Cut transitions<select value={plan.transition || "cut"} onChange={e => onApply({ ...plan, transition: e.target.value as "cut" | "dip" })}><option value="cut">Clean cuts</option><option value="dip">Brief dip to black</option></select></label>

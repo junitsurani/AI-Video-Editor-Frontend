@@ -610,6 +610,11 @@ export default function ProjectPage({
                         : "Let’s make the first cut"}
                     </h2>
                     <p>{mode?.detail}</p>
+                    {project.mode === "clips" && project.info.duration > 0 && project.info.duration < 8 * 60 && (
+                      <p className="subtle-note">
+                        This source is under eight minutes. Clipping still runs, but it is built for long-form vlogs, podcasts, streams, and interviews.
+                      </p>
+                    )}
                     {project.mode === "clips" && (
                       <div className="setting-group">
                         <label className="field-heading">Clipping output</label>
@@ -626,7 +631,7 @@ export default function ProjectPage({
                             }}
                           >
                             <strong>Separate clips</strong>
-                            <span>Rank stand-alone highlights. You pick which ones to style. Starts in 9:16.</span>
+                            <span>Rank stand-alone moments from the long-form source. You pick which ones to style. Starts in 9:16.</span>
                           </button>
                           <button
                             type="button"
@@ -768,18 +773,18 @@ export default function ProjectPage({
                           project.mode === "clips"
                             ? clipLayout === "combined"
                               ? "The most important complete moments, combined into one reel"
-                              : "Find the strongest stand-alone highlights from this stream"
+                              : "Find the strongest stand-alone highlights from this vlog, podcast, or stream"
                             : project.mode === "inspirational"
                               ? "Cinematic motivational cut. Keep the speech, captions on the key lines, music if I uploaded a track."
                               : project.mode === "social"
-                                ? "Tight vertical talking-head from this raw take. Captions, dead air out, punch in on the strongest lines."
+                                ? "Tight vertical talking-head from this raw take. Captions on the key lines, dead air out, punch in on the strongest lines."
                                 : "A concise product story with a strong opening"
                         } disabled={styleLocked} />
                       <p className="subtle-note">
                         {project.mode === "clips"
                           ? clipLayout === "combined"
-                            ? "Frame ranks complete moments, then concatenates them into one captioned video at the format above."
-                            : "Frame ranks complete moments. You choose which ones to style as separate clips at the format above."
+                            ? "Frame ranks complete moments from the long-form source, then concatenates them into one captioned video at the format above."
+                            : "Frame ranks complete moments from the long-form source. You choose which ones to style as separate clips at the format above."
                           : "Describe the result, length and tone. Raw footage is edited; captions stay on when speech is found."}
                       </p>
                       {!sourceReady && (

@@ -11,7 +11,7 @@ export type Finishing = {
   focus_y?: number;
   motion?: "none" | "push" | "punch";
   caption_style?: "clean" | "highlight" | "bold";
-  caption_position?: "lower" | "center";
+  caption_position?: "lower" | "center" | "behind";
   denoise?: boolean;
   music_id?: string | null;
   music_volume?: number;
@@ -29,7 +29,7 @@ export type SupportingAsset = {
   duration: number; description: string; rights: string; status: string;
 };
 export type MediaLayer = { asset_id: string; start: number; end: number; source_start: number; layout?: "cover" | "split"; volume?: number };
-export type GraphicLayer = { text: string; start: number; end: number; position: "top" | "center" };
+export type GraphicLayer = { text: string; start: number; end: number; position: "top" | "center" | "behind" };
 export type Plan = Finishing & {
   broll?: MediaLayer[];
   sfx?: MediaLayer[];
@@ -179,7 +179,7 @@ export const modes = [
     id: "social" as Mode,
     title: "Talking head",
     description: "Raw takes into a watchable short.",
-    detail: "Silence out, word-onset captions, punch density for the look you pick.",
+    detail: "Silence out, cream captions in your fonts, punch-ins, optional captions behind the speaker.",
     image: "/workflows/social.webp",
     label: "REELS · SHORTS · TIKTOK",
   },
@@ -194,10 +194,10 @@ export const modes = [
   {
     id: "clips" as Mode,
     title: "Clipping",
-    description: "Find the moments worth sharing.",
-    detail: "Rank highlights, then choose separate shorts or one combined reel.",
+    description: "Highlights from a finished long video.",
+    detail: "Built for vlogs, podcasts, streams, and interviews. Rank 20–90s moments, then style or combine them.",
     image: "/workflows/clips.webp",
-    label: "STREAMS · PODCASTS",
+    label: "VLOGS · PODCASTS · STREAMS",
   },
 ];
 export const laterModes = [
@@ -211,9 +211,9 @@ export const laterModes = [
   },
 ];
 export const lookPresets = [
-  { id: "simple" as LookPreset, title: "Simple", detail: "Clean captions and light punch-ins." },
-  { id: "retention" as LookPreset, title: "Retention", detail: "Dense punch-ins and keyword type." },
-  { id: "premium" as LookPreset, title: "Premium", detail: "Restrained grade and catalog B-roll." },
+  { id: "simple" as LookPreset, title: "Simple", detail: "Nunito lower captions, Oswald on key words, light punch-ins." },
+  { id: "retention" as LookPreset, title: "Retention", detail: "Anton captions behind the speaker, denser punch-ins. Switch to Normal anytime." },
+  { id: "premium" as LookPreset, title: "Premium", detail: "Playfair lower captions, slow zoom-in, fade, catalog B-roll." },
 ];
 export function duration(n: number) {
   const s = Math.max(0, Math.floor(Number.isFinite(n) ? n : 0));
