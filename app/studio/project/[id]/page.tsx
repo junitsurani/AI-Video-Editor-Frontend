@@ -73,10 +73,11 @@ export default function ProjectPage({
   const video = useRef<HTMLVideoElement>(null);
   const pendingSeek = useRef<number | null>(null);
   const initial = useRef(false);
+  const seeded = useRef(false);
   const receiveProject = useCallback((p: Project) => {
     setProject(p);
     setError("");
-    if (!initial.current) {
+    if (!seeded.current) {
       const combined = p.mode === "clips" && Boolean(p.clip_options?.combine_reel);
       if (p.mode === "clips") setClipLayout(combined ? "combined" : "separate");
       setAspect(
@@ -103,8 +104,11 @@ export default function ProjectPage({
         },
       );
       setTrimStart(0);
-      setTrimEnd(p.info.duration);
       if (p.look_preset) setLookPreset(p.look_preset);
+      seeded.current = true;
+    }
+    if (!initial.current) {
+      setTrimEnd(p.info.duration);
       initial.current = p.info.duration > 0;
     }
   }, []);
