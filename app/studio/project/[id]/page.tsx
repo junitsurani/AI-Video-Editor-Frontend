@@ -77,10 +77,7 @@ export default function ProjectPage({
     setProject(p);
     setError("");
     if (!initial.current) {
-      const combined =
-        p.mode === "clips" &&
-        (Boolean(p.clip_options?.combine_reel) ||
-          (p.revisions.at(-1)?.plan.cuts.length ?? 0) > 1);
+      const combined = p.mode === "clips" && Boolean(p.clip_options?.combine_reel);
       if (p.mode === "clips") setClipLayout(combined ? "combined" : "separate");
       setAspect(
         p.revisions.at(-1)?.plan.aspect ||
@@ -154,8 +151,9 @@ export default function ProjectPage({
     project?.revisions.find((r) => r.id === revisionId) ||
     project?.revisions.at(-1);
   const waitingOnFirstEdit = !project?.revisions.length;
+  const job = project?.job ?? null;
   const showClarify =
-    project?.job?.status === "needs_input" && !processing && waitingOnFirstEdit;
+    job != null && job.status === "needs_input" && !processing && waitingOnFirstEdit;
   const [draftRevision, setDraftRevision] = useState("");
   // Reset the editable draft only when a different saved revision is selected.
   if (selected && draftRevision !== selected.id) {
@@ -329,8 +327,8 @@ export default function ProjectPage({
                       <LoaderCircle size={20} className="spin" />
                       <div>
                         <strong>
-                          {project.job?.status === "running" || project.job?.status === "queued"
-                            ? project.job.message
+                          {job && (job.status === "running" || job.status === "queued")
+                            ? job.message
                             : preparingSource
                               ? "Preparing your uploaded video"
                               : "Starting your edit"}
@@ -340,29 +338,29 @@ export default function ProjectPage({
                           when you return.
                         </span>
                       </div>
-                      <b>{project.job?.status === "running" ? project.job.progress : 0}%</b>
+                      <b>{job?.status === "running" ? job.progress : 0}%</b>
                     </div>
-                    <progress value={project.job?.status === "running" ? project.job.progress : 0} max={100} />
-                    {project.job && !busy && <Button variant="ghost" size="sm" onClick={() => action(`/jobs/${project.job!.id}/cancel`, {})}>Cancel processing</Button>}
+                    <progress value={job?.status === "running" ? job.progress : 0} max={100} />
+                    {job && !busy && <Button variant="ghost" size="sm" onClick={() => action(`/jobs/${job.id}/cancel`, {})}>Cancel processing</Button>}
                   </div>
                 )}
-                {(project.job?.status === "failed" || project.job?.status === "cancelled") && !processing && (
+                {job && (job.status === "failed" || job.status === "cancelled") && !processing && (
                   <div className="error-message" role="alert">
-                    {project.job.message}
-                    {project.job.status === "failed" && (
-                      <Button variant="outline" size="sm" onClick={() => action(`/jobs/${project.job!.id}/retry`, {})}>Retry</Button>
+                    {job.message}
+                    {job.status === "failed" && (
+                      <Button variant="outline" size="sm" onClick={() => action(`/jobs/${job.id}/retry`, {})}>Retry</Button>
                     )}
                   </div>
                 )}
-                {showClarify && (
+                {showClarify && job && (
                   <div className="clarify-panel" role="form">
                     <Sparkles size={16} />
                     <div>
                       <strong>One thing before this first edit can continue</strong>
-                      <p>{project.job.clarification?.question || project.job.message}</p>
-                      {project.job.clarification?.kind === "choice" && (
+                      <p>{job.clarification?.question || job.message}</p>
+                      {job.clarification?.kind === "choice" && (
                         <div className="look-presets">
-                          {(project.job.clarification.options || []).map((option) => (
+                          {(job.clarification?.options || []).map((option) => (
                             <button
                               type="button"
                               key={option.id}
@@ -374,7 +372,7 @@ export default function ProjectPage({
                           ))}
                         </div>
                       )}
-                      {project.job.clarification?.kind === "duration" && (
+                      {job.clarification?.kind === "duration" && (
                         <Input
                           type="number"
                           min={1}
@@ -384,7 +382,7 @@ export default function ProjectPage({
                           onChange={(e) => setClarifyAnswer(e.target.value)}
                         />
                       )}
-                      {project.job.clarification?.kind === "topic" && (
+                      {job.clarification?.kind === "topic" && (
                         <Input
                           aria-label="Clarify the topic"
                           value={clarifyAnswer}
@@ -392,18 +390,18 @@ export default function ProjectPage({
                           placeholder="Answer in a sentence…"
                         />
                       )}
-                      {project.job.clarification?.kind === "missing_asset" && (
+                      {job.clarification?.kind === "missing_asset" && (
                         <p className="subtle-note">Upload the file in Style & sound, then continue.</p>
                       )}
                       <Button
                         className="generate-button"
                         disabled={
-                          (project.job.clarification?.kind === "choice" && !clarifyOption) ||
-                          (project.job.clarification?.kind === "topic" && !clarifyAnswer.trim()) ||
-                          (project.job.clarification?.kind === "duration" && !clarifyAnswer)
+                          (job.clarification?.kind === "choice" && !clarifyOption) ||
+                          (job.clarification?.kind === "topic" && !clarifyAnswer.trim()) ||
+                          (job.clarification?.kind === "duration" && !clarifyAnswer)
                         }
                         onClick={() =>
-                          action(`/jobs/${project.job!.id}/continue`, {
+                          action(`/jobs/${job.id}/continue`, {
                             option: clarifyOption || undefined,
                             answer: clarifyAnswer || undefined,
                           })
@@ -413,7 +411,7 @@ export default function ProjectPage({
                       </Button>
                       <Button
                         variant="ghost"
-                        onClick={() => action(`/jobs/${project.job!.id}/cancel`, {})}
+                        onClick={() => action(`/jobs/${job.id}/cancel`, {})}
                       >
                         Dismiss — keep current edit
                       </Button>
@@ -786,7 +784,7 @@ export default function ProjectPage({
                       </p>
                       {!sourceReady && (
                         <p className="subtle-note" role="status">
-                          {project.job?.kind === "ingest" && project.job.status === "failed"
+                          {job?.kind === "ingest" && job?.status === "failed"
                             ? "Your file is uploaded, but it still needs to be prepared before Create first cut can run. Retry processing above."
                             : "Preparing the original video. You can set style and write a prompt now; Create first cut unlocks when preparation finishes."}
                         </p>
