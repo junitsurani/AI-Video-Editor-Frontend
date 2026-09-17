@@ -1,5 +1,6 @@
 import { clearCsrf, csrfHeaders, redirectToLogin } from "./auth";
 import { demoMode } from "./demo";
+export type LookPreset = "simple" | "retention" | "premium";
 export type Mode = "social" | "inspirational" | "clips" | "course";
 export type Finishing = {
   framing?: "auto" | "manual";
@@ -17,6 +18,10 @@ export type Finishing = {
   music_duck?: boolean;
   fade?: number;
   normalize_audio: boolean;
+  look_preset?: LookPreset | null;
+  punch_gain?: number;
+  vignette?: boolean;
+  music_rise_at?: number | null;
 };
 export type SupportingAsset = {
   id: string; name: string; role: "broll" | "sfx" | "reference" | "music"; kind: "image" | "video" | "audio";
@@ -41,9 +46,10 @@ export type Revision = {
   created_at: string;
   prompt: string;
   plan: Plan;
-  edit_summary?: { message: string; changed_fields: string[] } | null;
   preview_url: string;
   export_url?: string;
+  stills?: { start?: string; mid?: string; end?: string };
+  edit_summary?: { message: string; changed_fields: string[]; quality?: { pass?: boolean; issues?: string[] }; fonts?: { role: string; family: string }[] } | null;
 };
 export type Job = {
   id: string;
@@ -51,6 +57,11 @@ export type Job = {
   status: string;
   progress: number;
   message: string;
+  clarification?: {
+    question: string;
+    kind: "choice" | "missing_asset" | "duration" | "topic";
+    options: { id: string; label: string }[];
+  };
 };
 export type Project = {
   cleanup?: {
@@ -71,6 +82,7 @@ export type Project = {
   name: string;
   filename: string;
   mode: Mode;
+  look_preset?: LookPreset | null;
   size: number;
   status: string;
   created_at: string;
@@ -163,36 +175,43 @@ export async function api<T>(
 export const modes = [
   {
     id: "social" as Mode,
-    title: "Social edit",
-    description: "Talking heads that stop the scroll.",
-    detail: "Raw footage in. Captions, cuts, and a 9:16 cut out.",
+    title: "Talking head",
+    description: "Raw takes into a watchable short.",
+    detail: "Silence out, word-onset captions, punch density for the look you pick.",
     image: "/workflows/social.webp",
     label: "REELS · SHORTS · TIKTOK",
   },
   {
     id: "inspirational" as Mode,
-    title: "Cinematic edit",
-    description: "Turn a moment into a feeling.",
-    detail: "Speech, captions, music, and a cinematic build.",
+    title: "Motivational",
+    description: "Hook, build, payoff.",
+    detail: "Keep the speech. Duck music, then rise after the key line.",
     image: "/workflows/cinematic.webp",
-    label: "MOTIVATION · MOVIE EDITS",
+    label: "SPEECH · MUSIC · CUTAWAYS",
   },
   {
     id: "clips" as Mode,
-    title: "Long-form to clips",
+    title: "Clipping",
     description: "Find the moments worth sharing.",
-    detail: "Highlights from a long stream, then a captioned social cut.",
+    detail: "Rank 20–90s highlights, then style the ones you pick.",
     image: "/workflows/clips.webp",
-    label: "PODCASTS · INTERVIEWS",
+    label: "STREAMS · PODCASTS",
   },
+];
+export const laterModes = [
   {
     id: "course" as Mode,
     title: "Courses & YouTube",
     description: "Clear ideas. Clean delivery.",
-    detail: "Remove pauses and polish your lesson.",
+    detail: "Dual-source course cleanup comes later.",
     image: "/workflows/course.webp",
-    label: "LESSONS · TUTORIALS · VLOGS",
+    label: "COMING LATER",
   },
+];
+export const lookPresets = [
+  { id: "simple" as LookPreset, title: "Simple", detail: "Clean captions and light punch-ins." },
+  { id: "retention" as LookPreset, title: "Retention", detail: "Dense punch-ins and keyword type." },
+  { id: "premium" as LookPreset, title: "Premium", detail: "Restrained grade and catalog B-roll." },
 ];
 export function duration(n: number) {
   const s = Math.floor(n);

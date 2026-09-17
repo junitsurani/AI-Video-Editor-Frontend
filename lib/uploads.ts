@@ -78,7 +78,7 @@ export async function uploadMusic(file: File, projectId: string) {
   return api<{ asset_id: string; job_id: string }>(`/uploads/${init.id}/complete`, 'POST', {});
 }
 
-export async function uploadVideo(file: File, mode: Mode, onProgress: (value: number) => void) {
+export async function uploadVideo(file: File, mode: Mode, onProgress: (value: number) => void, lookPreset?: string) {
   // A small content fingerprint avoids accidentally resuming a different file.
   const fingerprint = await checksum(new Blob([file.slice(0, 65536), file.slice(-65536)]));
   const key = `frame-upload:${mode}:${file.size}:${file.lastModified}:${fingerprint}`;
@@ -95,7 +95,7 @@ export async function uploadVideo(file: File, mode: Mode, onProgress: (value: nu
     catch { sessionStorage.removeItem(key); }
   }
   if (!init) {
-    init = await api<Upload>('/uploads', 'POST', { filename: file.name, size: file.size, mode });
+    init = await api<Upload>('/uploads', 'POST', { filename: file.name, size: file.size, mode, look_preset: lookPreset });
     if (init.storage === 's3') sessionStorage.setItem(key, init.id);
   }
   const completed = new Map(init.parts?.map((p) => [p.number, p.checksum]) || []);
