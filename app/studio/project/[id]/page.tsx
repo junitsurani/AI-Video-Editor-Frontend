@@ -72,14 +72,21 @@ export default function ProjectPage({
         p.revisions.at(-1)?.plan.aspect ||
           (p.mode === "course" ? "16:9" : "9:16"),
       );
-      setCaptions(p.revisions.at(-1)?.plan.captions ?? (p.mode === "social"));
+      setCaptions(
+        p.revisions.at(-1)?.plan.captions ?? p.mode !== "course",
+      );
       setFinishing(
         p.revisions.at(-1)?.plan || {
           look: p.mode === "inspirational" ? "cinematic" : "natural",
           fit: "contain",
-          framing: p.mode === "social" ? "auto" : "manual",
-          motion: p.mode === "social" ? "punch" : "none",
-          caption_style: p.mode === "social" ? "highlight" : "clean",
+          framing: p.mode === "course" ? "manual" : "auto",
+          motion:
+            p.mode === "inspirational"
+              ? "push"
+              : p.mode === "course"
+                ? "none"
+                : "punch",
+          caption_style: p.mode === "course" ? "clean" : "highlight",
           normalize_audio: true,
         },
       );
@@ -365,6 +372,8 @@ export default function ProjectPage({
                         "Make it vertical",
                         "Make it landscape",
                         "Remove captions",
+                        "Less B-roll",
+                        "Make the first 5 seconds faster",
                       ].map((s) => (
                         <button
                           key={s}
@@ -392,8 +401,9 @@ export default function ProjectPage({
                       </h2>
                     </div>
                     {project.clip_search && <p className="subtle-note">{project.clip_search.message}</p>}
+                    <p className="subtle-note">Selected highlights are cut from the original, then given the same captioned 9:16 treatment as a talking-head edit.</p>
                     <Button variant="outline" disabled={processing || !chosenClips.some(id => project.clips.some(c => c.id === id))} onClick={() => action("/clips/render", { clips: chosenClips.filter(id => project.clips.some(c => c.id === id)) })}>
-                      Create selected clips ({chosenClips.filter(id => project.clips.some(c => c.id === id)).length})
+                      Style selected clips ({chosenClips.filter(id => project.clips.some(c => c.id === id)).length})
                     </Button>
                     {project.clips.map((c, i) => (
                       <article className="clip-candidate" key={c.id}>
@@ -540,8 +550,20 @@ export default function ProjectPage({
                     <div className="setting-group">
                       <label className="field-heading" htmlFor="edit-direction">What would you like to create?</label>
                       <Input id="edit-direction" value={prompt} maxLength={2000} onChange={e => setPrompt(e.target.value)}
-                        placeholder={project.mode === "clips" ? "Find short clips about building a business" : "A concise product story with a strong opening"} disabled={styleLocked} />
-                      <p className="subtle-note">Describe the result, length and tone. Supporting assets are used when relevant.</p>
+                        placeholder={
+                          project.mode === "clips"
+                            ? "Find 8 clips about discipline from this stream"
+                            : project.mode === "inspirational"
+                              ? "Cinematic motivational cut. Keep the speech, captions on the key lines, music if I uploaded a track."
+                              : project.mode === "social"
+                                ? "Tight vertical talking-head from this raw take. Captions, dead air out, punch in on the strongest lines."
+                                : "A concise product story with a strong opening"
+                        } disabled={styleLocked} />
+                      <p className="subtle-note">
+                        {project.mode === "clips"
+                          ? "Describe the topic, how many clips, and a duration range. After you pick highlights, Frame styles each one."
+                          : "Describe the result, length and tone. Raw footage is edited; captions stay on when speech is found."}
+                      </p>
                       {!sourceReady && (
                         <p className="subtle-note" role="status">
                           {project.job?.kind === "ingest" && project.job.status === "failed"
