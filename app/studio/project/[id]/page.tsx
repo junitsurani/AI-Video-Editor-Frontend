@@ -54,6 +54,7 @@ export default function ProjectPage({
   });
   const [removeSilence, setRemoveSilence] = useState(true);
   const [prompt, setPrompt] = useState("");
+  const [revisionPrompt, setRevisionPrompt] = useState("");
   const [clipCount, setClipCount] = useState(5);
   const [clipMin, setClipMin] = useState(20);
   const [clipMax, setClipMax] = useState(90);
@@ -143,6 +144,9 @@ export default function ProjectPage({
   const selected: Revision | undefined =
     project?.revisions.find((r) => r.id === revisionId) ||
     project?.revisions.at(-1);
+  const waitingOnFirstEdit = !project?.revisions.length;
+  const showClarify =
+    project?.job?.status === "needs_input" && !processing && waitingOnFirstEdit;
   const [draftRevision, setDraftRevision] = useState("");
   // Reset the editable draft only when a different saved revision is selected.
   if (selected && draftRevision !== selected.id) {
@@ -159,6 +163,9 @@ export default function ProjectPage({
       await api("/projects/" + id + path, "POST", data);
       setRevisionId("");
       setViewSource(false);
+      setRevisionPrompt("");
+      setClarifyAnswer("");
+      setClarifyOption("");
       await load();
     } catch (e) {
       setActionError((e as Error).message);
@@ -280,7 +287,7 @@ export default function ProjectPage({
                       ref={video}
                       src={
                         !viewSource && selected
-                          ? selected.preview_url
+                          ? `${selected.preview_url}${selected.preview_url.includes("?") ? "&" : "?"}v=${encodeURIComponent(selected.created_at)}`
                           : project.source_url
                       }
                       controls
@@ -332,14 +339,16 @@ export default function ProjectPage({
                 {(project.job?.status === "failed" || project.job?.status === "cancelled") && !processing && (
                   <div className="error-message" role="alert">
                     {project.job.message}
-                    <Button variant="outline" size="sm" onClick={() => action(`/jobs/${project.job!.id}/retry`, {})}>Retry</Button>
+                    {project.job.status === "failed" && (
+                      <Button variant="outline" size="sm" onClick={() => action(`/jobs/${project.job!.id}/retry`, {})}>Retry</Button>
+                    )}
                   </div>
                 )}
-                {project.job?.status === "needs_input" && !processing && (
+                {showClarify && (
                   <div className="clarify-panel" role="form">
                     <Sparkles size={16} />
                     <div>
-                      <strong>One thing before this edit can continue</strong>
+                      <strong>One thing before this first edit can continue</strong>
                       <p>{project.job.clarification?.question || project.job.message}</p>
                       {project.job.clarification?.kind === "choice" && (
                         <div className="look-presets">
@@ -392,10 +401,16 @@ export default function ProjectPage({
                       >
                         Continue
                       </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => action(`/jobs/${project.job!.id}/cancel`, {})}
+                      >
+                        Dismiss — keep current edit
+                      </Button>
                     </div>
                   </div>
                 )}
-                {selected?.edit_summary?.message && !viewSource && <p className="subtle-note">{selected.edit_summary.message}</p>}
+                {selected?.edit_summary?.message && !viewSource && !showClarify && <p className="subtle-note">{selected.edit_summary.message}</p>}
                 {!viewSource && selected?.stills ? (
                   <div className="diagnostic-stills">
                     {(["start", "mid", "end"] as const).map((at) => {
@@ -420,30 +435,31 @@ export default function ProjectPage({
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
-                        if (prompt.trim())
+                        if (revisionPrompt.trim())
                           action("/revisions", {
-                            prompt,
+                            prompt: revisionPrompt,
                             base_revision: selected.id,
                           });
                       }}
                     >
                       <Input
                         aria-label="Describe an edit revision"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
+                        value={revisionPrompt}
+                        onChange={(e) => setRevisionPrompt(e.target.value)}
                         placeholder="Tell us what to change…"
                         disabled={processing}
                       />
                       <Button
                         aria-label="Apply revision"
                         type="submit"
-                        disabled={!prompt.trim() || processing}
+                        disabled={!revisionPrompt.trim() || processing}
                       >
                         <ArrowUp size={18} />
                       </Button>
                     </form>
                     <div className="prompt-suggestions">
                       {[
+                        "Make captions larger",
                         "Make it vertical",
                         "Make it landscape",
                         "Remove captions",
@@ -453,7 +469,12 @@ export default function ProjectPage({
                         <button
                           key={s}
                           disabled={processing}
-                          onClick={() => setPrompt(s)}
+                          onClick={() =>
+                            action("/revisions", {
+                              prompt: s,
+                              base_revision: selected.id,
+                            })
+                          }
                         >
                           {s}
                         </button>

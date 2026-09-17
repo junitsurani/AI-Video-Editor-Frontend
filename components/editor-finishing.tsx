@@ -194,6 +194,23 @@ export function EditorFinishing({
             <option value="bold">Bold pop</option>
           </select>
         </label>
+        <label className={styles.field}>
+          Caption size
+          <select
+            value={
+              (value.caption_scale ?? 1) >= 1.6
+                ? "1.7"
+                : (value.caption_scale ?? 1) >= 1.2
+                  ? "1.35"
+                  : "1"
+            }
+            onChange={(e) => patch({ caption_scale: Number(e.target.value) })}
+          >
+            <option value="1">Default</option>
+            <option value="1.35">Larger</option>
+            <option value="1.7">Extra large</option>
+          </select>
+        </label>
         {value.caption_style === "highlight" &&
           !project.analysis?.words.length && (
             <p className={styles.note}>

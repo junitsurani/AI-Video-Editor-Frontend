@@ -22,6 +22,7 @@ export type Finishing = {
   punch_gain?: number;
   vignette?: boolean;
   music_rise_at?: number | null;
+  caption_scale?: number;
 };
 export type SupportingAsset = {
   id: string; name: string; role: "broll" | "sfx" | "reference" | "music"; kind: "image" | "video" | "audio";
