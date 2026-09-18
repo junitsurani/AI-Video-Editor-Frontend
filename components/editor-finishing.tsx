@@ -25,6 +25,9 @@ export function EditorFinishing({
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const hasSpeech = Boolean(project.analysis?.segments.length || project.analysis?.words.length);
+  const hasTrackedFace = Boolean(project.analysis?.tracking?.subjects.length);
+  const canUseBehind = hasSpeech && hasTrackedFace && project.analysis?.tracking?.engine !== "opencv-fallback";
   function patch(update: Partial<Finishing>) {
     onChange({ ...value, ...update });
   }
@@ -236,12 +239,14 @@ export function EditorFinishing({
           >
             <option value="lower">Normal — lower third</option>
             <option value="center">Normal — center</option>
-            <option value="behind">Behind the speaker</option>
+            <option value="behind" disabled={!canUseBehind}>Behind the speaker</option>
           </select>
         </label>
         {value.caption_position === "behind" && (
           <p className={styles.note}>
-            Spoken captions sit behind the tracked person. If no face is found, they stay centered in front.
+            {canUseBehind
+              ? "Spoken captions sit behind the tracked person. If the mask is unreliable, the render reports a fallback."
+              : "Behind captions need a transcript plus MediaPipe face tracking. Use the normal lower third for this source."}
           </p>
         )}
         <label className={styles.field}>
