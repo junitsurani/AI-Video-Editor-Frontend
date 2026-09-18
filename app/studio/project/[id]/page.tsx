@@ -333,7 +333,7 @@ export default function ProjectPage({
                     </span>
                     <span>
                       {!viewSource && selected
-                        ? selected.plan.aspect + " · 720p preview"
+                        ? `${selected.plan.aspect} · 720p preview · ${selected.plan.captions ? "captions on" : "captions off"}`
                         : "Source preview"}
                     </span>
                   </div>
@@ -485,6 +485,7 @@ export default function ProjectPage({
                     </form>
                     <div className="prompt-suggestions">
                       {[
+                        "Add captions",
                         "Make captions larger",
                         "Make it vertical",
                         "Make it landscape",
@@ -506,12 +507,11 @@ export default function ProjectPage({
                         </button>
                       ))}
                     </div>
-                    {!health?.ai_configured && (
-                      <p className="subtle-note">
-                        Framing and caption removal work now. Connect AI for
-                        other prompt revisions.
-                      </p>
-                    )}
+                    <p className="subtle-note">
+                      {health?.ai_configured
+                        ? "This re-renders from the current edit. Add captions only works when a transcript exists."
+                        : "Add captions, caption size, aspect, and B-roll removal work now. Connect AI for other prompt revisions."}
+                    </p>
                   </section>
                 )}
                 {project.clips.length > 0 && (
@@ -718,9 +718,10 @@ export default function ProjectPage({
                         <label htmlFor="captions">Captions</label>
                         <span>
                           {health?.ai_configured ||
-                          project.analysis?.segments.length
-                            ? "Clear words, timed to your voice."
-                            : "Import subtitles or connect AI."}
+                          (project.analysis?.segments.length ?? 0) > 0 ||
+                          (project.analysis?.words.length ?? 0) > 0
+                            ? "Clear words, timed to your voice. Apply in Style & sound, or type Add captions below the preview."
+                            : "Import subtitles or connect AI so spoken captions can burn in."}
                         </span>
                       </div>
                       <Switch
@@ -729,7 +730,7 @@ export default function ProjectPage({
                         onCheckedChange={setCaptions}
                         disabled={
                           !health?.ai_configured &&
-                          !project.analysis?.segments.length
+                          !(project.analysis?.segments.length || project.analysis?.words.length)
                         }
                       />
                     </div>
