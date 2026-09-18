@@ -333,7 +333,13 @@ export default function ProjectPage({
                     </span>
                     <span>
                       {!viewSource && selected
-                        ? `${selected.plan.aspect} · 720p preview · ${selected.plan.captions ? "captions on" : "captions off"}`
+                        ? `${selected.plan.aspect} · 720p preview · ${selected.plan.captions ? "captions on for 1080 export" : "captions off"}${
+                            selected.edit_summary?.behind_requested
+                              ? selected.edit_summary.behind_applied
+                                ? " · behind applied"
+                                : " · behind fallback"
+                              : ""
+                          }`
                         : "Source preview"}
                     </span>
                   </div>
