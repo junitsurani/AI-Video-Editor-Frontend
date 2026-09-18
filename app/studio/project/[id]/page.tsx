@@ -351,9 +351,9 @@ export default function ProjectPage({
                               : "Starting your edit"}
                         </strong>
                         <span>
-                          Safe to leave this page — editing continues on our
-                          servers. Come back anytime; the finished preview will
-                          be waiting here.
+                          {project?.mode === "clips" && clipLayout === "combined"
+                            ? "Safe to leave — combined 16:9 reels keep encoding on the server and can take several minutes."
+                            : "Safe to leave this page — editing continues on our servers. Come back anytime; the finished preview will be waiting here."}
                         </span>
                       </div>
                       <b>{job?.status === "running" ? job.progress : 0}%</b>
