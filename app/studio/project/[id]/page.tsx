@@ -185,8 +185,23 @@ export default function ProjectPage({
     }
   }
   function analyze() {
+    const style =
+      selected != null
+        ? { ...finishing }
+        : {
+            // First cut: look_preset owns motion, caption layout, fade, and grade.
+            // Do not send editor defaults that would override Retention/Premium.
+            framing: finishing.framing,
+            fit: finishing.fit,
+            normalize_audio: finishing.normalize_audio,
+            denoise: finishing.denoise,
+            music_id: finishing.music_id,
+            music_volume: finishing.music_volume,
+            music_duck: finishing.music_duck,
+            caption_scale: finishing.caption_scale,
+          };
     action("/analyze", {
-      ...finishing,
+      ...style,
       aspect,
       captions,
       remove_silence: removeSilence,
@@ -338,8 +353,9 @@ export default function ProjectPage({
                               : "Starting your edit"}
                         </strong>
                         <span>
-                          You can leave this page. Your project will be here
-                          when you return.
+                          Safe to leave this page — editing continues on our
+                          servers. Come back anytime; the finished preview will
+                          be waiting here.
                         </span>
                       </div>
                       <b>{job?.status === "running" ? job.progress : 0}%</b>
