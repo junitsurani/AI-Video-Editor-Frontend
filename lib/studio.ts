@@ -50,7 +50,7 @@ export type Revision = {
   preview_url: string;
   export_url?: string;
   stills?: { start?: string; mid?: string; end?: string };
-  edit_summary?: { message: string; changed_fields: string[]; quality?: { pass?: boolean; issues?: string[] }; fonts?: { role: string; family: string }[] } | null;
+  edit_summary?: { message: string; changed_fields: string[]; quality?: { pass?: boolean; issues?: string[] }; behind_requested?: boolean; behind_applied?: boolean; fonts?: { role: string; family: string }[] } | null;
 };
 export type Job = {
   id: string;
