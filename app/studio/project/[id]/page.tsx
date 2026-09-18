@@ -189,10 +189,8 @@ export default function ProjectPage({
       selected != null
         ? { ...finishing }
         : {
-            // First cut: look_preset owns motion, caption layout, fade, and grade.
-            // Do not send editor defaults that would override Retention/Premium.
-            framing: finishing.framing,
-            fit: finishing.fit,
+            // First cut: look_preset owns motion, caption layout, fade, grade, and framing fit.
+            // Sending fit:"contain" here made many previews look like the untouched source.
             normalize_audio: finishing.normalize_audio,
             denoise: finishing.denoise,
             music_id: finishing.music_id,
